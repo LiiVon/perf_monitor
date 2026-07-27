@@ -11,6 +11,8 @@
 
 namespace monitor
 {
+    // 内核模块设备文件路径 让用户态程序能访问内核空间的数据。
+    static const char* CPU_LOAD_DEVICE = "/dev/cpu_load_monitor"; 
     // 从 /proc/loadavg 读取负载信息作为后备方案
     static bool ReadLoadFromProc(float *load1, float *load5, float *load15)
     {
@@ -32,15 +34,19 @@ namespace monitor
     void CpuLoadMonitor::UpdateOnce(monitor::proto::MonitorInfo *monitor_info)
     {
         // 首先尝试从内核模块读取
-        int fd = open("/dev/cpu_load_monitor", O_RDONLY);
+        int fd = open(CPU_LOAD_DEVICE, O_RDONLY);
         if (fd >= 0)
         {
+            // 内核模块已加载并正常工作
             size_t load_size = sizeof(struct cpu_load);
 
-            // 使用mmap映射内核模块的负载数据
+            // mmap 将设备文件的内存区域直接映射到用户进程的地址空间，实现零拷贝
+            // 内核更新数据后，用户态可以直接看到最新值，省去了系统调用和数据复制开销，适合高频读取
             void *addr = mmap(nullptr, load_size, PROT_READ, MAP_SHARED, fd, 0);
             if (addr != MAP_FAILED)
             {
+                // 内核模块会在时钟中断或其他触发点持续更新这个结构体 struct cpu_load info，
+                // 用户程序通过 mmap 直接读取实时值
                 struct cpu_load info;
                 memcpy(&info, addr, load_size);
 

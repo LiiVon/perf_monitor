@@ -177,6 +177,30 @@ src/monitor/cpu_load_monitor.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/monitor/cpu_load_monitor.cpp.s
 .PHONY : src/monitor/cpu_load_monitor.cpp.s
 
+src/monitor/cpu_softirq_monitor.o: src/monitor/cpu_softirq_monitor.cpp.o
+.PHONY : src/monitor/cpu_softirq_monitor.o
+
+# target to build an object file
+src/monitor/cpu_softirq_monitor.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/monitor/cpu_softirq_monitor.cpp.o
+.PHONY : src/monitor/cpu_softirq_monitor.cpp.o
+
+src/monitor/cpu_softirq_monitor.i: src/monitor/cpu_softirq_monitor.cpp.i
+.PHONY : src/monitor/cpu_softirq_monitor.i
+
+# target to preprocess a source file
+src/monitor/cpu_softirq_monitor.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/monitor/cpu_softirq_monitor.cpp.i
+.PHONY : src/monitor/cpu_softirq_monitor.cpp.i
+
+src/monitor/cpu_softirq_monitor.s: src/monitor/cpu_softirq_monitor.cpp.s
+.PHONY : src/monitor/cpu_softirq_monitor.s
+
+# target to generate assembly for a file
+src/monitor/cpu_softirq_monitor.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/monitor/cpu_softirq_monitor.cpp.s
+.PHONY : src/monitor/cpu_softirq_monitor.cpp.s
+
 src/utils/read_file.o: src/utils/read_file.cpp.o
 .PHONY : src/utils/read_file.o
 
@@ -216,6 +240,9 @@ help:
 	@echo "... src/monitor/cpu_load_monitor.o"
 	@echo "... src/monitor/cpu_load_monitor.i"
 	@echo "... src/monitor/cpu_load_monitor.s"
+	@echo "... src/monitor/cpu_softirq_monitor.o"
+	@echo "... src/monitor/cpu_softirq_monitor.i"
+	@echo "... src/monitor/cpu_softirq_monitor.s"
 	@echo "... src/utils/read_file.o"
 	@echo "... src/utils/read_file.i"
 	@echo "... src/utils/read_file.s"

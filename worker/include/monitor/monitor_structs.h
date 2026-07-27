@@ -1,7 +1,9 @@
 #pragma once
 #include <stdint.h>
 
-// 内核模块与用户空间共享的数据结构定义
+
+// 内核模块与用户程序间的二进制契约
+// struct的内存布局必须与内核中定义的完全一致
 #ifdef __cplusplus
 extern "C"
 {

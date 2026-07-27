@@ -67,7 +67,7 @@ set(WORKER_SOURCES
     src/main.cpp
     # src/monitor/metric_collector.cpp
     src/monitor/cpu_load_monitor.cpp
-    # src/monitor/cpu_softirq_monitor.cpp
+    src/monitor/cpu_softirq_monitor.cpp
     # src/monitor/cpu_stat_monitor.cpp
     # src/monitor/mem_monitor.cpp
     # src/monitor/disk_monitor.cpp
