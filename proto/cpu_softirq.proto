@@ -1,0 +1,33 @@
+syntax = "proto3";
+package monitor.proto;
+
+// 软中断
+message SoftIrq
+{
+  string cpu      = 1;     // CPU名称
+  float  hi       = 2;       // 高优先级软中断
+  float  timer    = 3;    // 定时器软中断
+  float  net_tx   = 4;   // 网络数据包 发送
+  float  net_rx   = 5;   // 网络数据包 接收
+  float  block    = 6;    // BLOCK 块设备 IO完成
+  float  irq_poll = 7;   // 中断轮询
+  float  tasklet  = 8;  // 小任务机制
+  float  sched    = 9;    // 内核调度
+  float  hrtimer  = 10; // 高精度定时器
+  float  rcu      = 11;     // 锁机制
+}
+
+/*
+ cat /proc/softirqs
+ CPU0       CPU1       CPU2       CPU3
+ HI:          0          0          0          0
+ TIMER:   15234567   14890234   15122345   14987654
+ NET_TX:          0          0          0          0
+ NET_RX:    1234567    2345678    1234567    2345678
+ BLOCK:     123456     234567     123456     234567
+ IRQ_POLL:          0          0          0          0
+ TASKLET:        123        456        789        101
+ SCHED:    2345678    3456789    2345678    3456789
+ HRTIMER:          0          0          0          0
+ RCU:    9876543    8765432    9876543    8765432
+ */

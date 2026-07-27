@@ -1,0 +1,31 @@
+syntax = "proto3";
+package monitor.proto;
+
+message CpuStat
+{
+  string cpu_name         = 1;
+  float  cpu_percent      = 2;      // 总使用率
+  float  usr_percent      = 3;      // 用户态cpu占比
+  float  nice_percent     = 4;     // 低优先级用户态占比
+  float  system_percent   = 5;   // 内核态cpu占比
+  float  idle_percent     = 6;     // 空闲时间占比
+  float  io_wait_percent  = 7;  // IO等待占比
+  float  irq_percent      = 8;      // 硬中断占比
+  float  soft_irq_percent = 9; // 软中断占比
+}
+
+/*
+ mpstat -P ALL 1
+
+ 06:37:22 PM  CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal  %guest  %gnice   %idle
+ 06:37:23 PM  all    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00
+ 06:37:23 PM    0    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00
+ 06:37:23 PM    1    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00
+ 06:37:23 PM    2    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00
+ 06:37:23 PM    3    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00
+ 06:37:23 PM    4    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00
+ 06:37:23 PM    5    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00
+ 06:37:23 PM    6    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00
+ 06:37:23 PM    7    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00
+
+ */

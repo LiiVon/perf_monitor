@@ -1,0 +1,10 @@
+syntax = "proto3";
+package monitor.proto;
+
+// /proc/loadavg 文件 前3个字段分别表示 1分钟、5分钟、15分钟的平均负载
+message CpuLoad
+{
+  float load_avg_1  = 1;
+  float load_avg_5  = 2;
+  float load_avg_15 = 3;
+}
