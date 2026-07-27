@@ -129,20 +129,77 @@ worker/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/build
 .PHONY : worker/fast
 
+src/main.o: src/main.cpp.o
+.PHONY : src/main.o
+
 # target to build an object file
-src/utils/read_file.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/utils/read_file.o
-.PHONY : src/utils/read_file.o
+src/main.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/main.cpp.o
+.PHONY : src/main.cpp.o
+
+src/main.i: src/main.cpp.i
+.PHONY : src/main.i
 
 # target to preprocess a source file
-src/utils/read_file.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/utils/read_file.i
-.PHONY : src/utils/read_file.i
+src/main.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/main.cpp.i
+.PHONY : src/main.cpp.i
+
+src/main.s: src/main.cpp.s
+.PHONY : src/main.s
 
 # target to generate assembly for a file
-src/utils/read_file.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/utils/read_file.s
+src/main.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/main.cpp.s
+.PHONY : src/main.cpp.s
+
+src/monitor/cpu_load_monitor.o: src/monitor/cpu_load_monitor.cpp.o
+.PHONY : src/monitor/cpu_load_monitor.o
+
+# target to build an object file
+src/monitor/cpu_load_monitor.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/monitor/cpu_load_monitor.cpp.o
+.PHONY : src/monitor/cpu_load_monitor.cpp.o
+
+src/monitor/cpu_load_monitor.i: src/monitor/cpu_load_monitor.cpp.i
+.PHONY : src/monitor/cpu_load_monitor.i
+
+# target to preprocess a source file
+src/monitor/cpu_load_monitor.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/monitor/cpu_load_monitor.cpp.i
+.PHONY : src/monitor/cpu_load_monitor.cpp.i
+
+src/monitor/cpu_load_monitor.s: src/monitor/cpu_load_monitor.cpp.s
+.PHONY : src/monitor/cpu_load_monitor.s
+
+# target to generate assembly for a file
+src/monitor/cpu_load_monitor.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/monitor/cpu_load_monitor.cpp.s
+.PHONY : src/monitor/cpu_load_monitor.cpp.s
+
+src/utils/read_file.o: src/utils/read_file.cpp.o
+.PHONY : src/utils/read_file.o
+
+# target to build an object file
+src/utils/read_file.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/utils/read_file.cpp.o
+.PHONY : src/utils/read_file.cpp.o
+
+src/utils/read_file.i: src/utils/read_file.cpp.i
+.PHONY : src/utils/read_file.i
+
+# target to preprocess a source file
+src/utils/read_file.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/utils/read_file.cpp.i
+.PHONY : src/utils/read_file.cpp.i
+
+src/utils/read_file.s: src/utils/read_file.cpp.s
 .PHONY : src/utils/read_file.s
+
+# target to generate assembly for a file
+src/utils/read_file.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/utils/read_file.cpp.s
+.PHONY : src/utils/read_file.cpp.s
 
 # Help Target
 help:
@@ -153,6 +210,12 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... worker"
+	@echo "... src/main.o"
+	@echo "... src/main.i"
+	@echo "... src/main.s"
+	@echo "... src/monitor/cpu_load_monitor.o"
+	@echo "... src/monitor/cpu_load_monitor.i"
+	@echo "... src/monitor/cpu_load_monitor.s"
 	@echo "... src/utils/read_file.o"
 	@echo "... src/utils/read_file.i"
 	@echo "... src/utils/read_file.s"

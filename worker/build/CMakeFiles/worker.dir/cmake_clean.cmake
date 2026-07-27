@@ -1,6 +1,10 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/worker.dir/src/utils/read_file.o"
-  "CMakeFiles/worker.dir/src/utils/read_file.o.d"
+  "CMakeFiles/worker.dir/src/main.cpp.o"
+  "CMakeFiles/worker.dir/src/main.cpp.o.d"
+  "CMakeFiles/worker.dir/src/monitor/cpu_load_monitor.cpp.o"
+  "CMakeFiles/worker.dir/src/monitor/cpu_load_monitor.cpp.o.d"
+  "CMakeFiles/worker.dir/src/utils/read_file.cpp.o"
+  "CMakeFiles/worker.dir/src/utils/read_file.cpp.o.d"
   "worker"
   "worker.pdb"
 )
