@@ -111,10 +111,52 @@ CMakeFiles/worker.dir/src/monitor/cpu_softirq_monitor.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/worker.dir/src/monitor/cpu_softirq_monitor.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/lz/lz_ws/perf_monitor/worker/src/monitor/cpu_softirq_monitor.cpp -o CMakeFiles/worker.dir/src/monitor/cpu_softirq_monitor.cpp.s
 
+CMakeFiles/worker.dir/src/monitor/cpu_stat_monitor.cpp.o: CMakeFiles/worker.dir/flags.make
+CMakeFiles/worker.dir/src/monitor/cpu_stat_monitor.cpp.o: /home/lz/lz_ws/perf_monitor/worker/src/monitor/cpu_stat_monitor.cpp
+CMakeFiles/worker.dir/src/monitor/cpu_stat_monitor.cpp.o: CMakeFiles/worker.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/lz/lz_ws/perf_monitor/worker/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/worker.dir/src/monitor/cpu_stat_monitor.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/worker.dir/src/monitor/cpu_stat_monitor.cpp.o -MF CMakeFiles/worker.dir/src/monitor/cpu_stat_monitor.cpp.o.d -o CMakeFiles/worker.dir/src/monitor/cpu_stat_monitor.cpp.o -c /home/lz/lz_ws/perf_monitor/worker/src/monitor/cpu_stat_monitor.cpp
+
+CMakeFiles/worker.dir/src/monitor/cpu_stat_monitor.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/worker.dir/src/monitor/cpu_stat_monitor.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/lz/lz_ws/perf_monitor/worker/src/monitor/cpu_stat_monitor.cpp > CMakeFiles/worker.dir/src/monitor/cpu_stat_monitor.cpp.i
+
+CMakeFiles/worker.dir/src/monitor/cpu_stat_monitor.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/worker.dir/src/monitor/cpu_stat_monitor.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/lz/lz_ws/perf_monitor/worker/src/monitor/cpu_stat_monitor.cpp -o CMakeFiles/worker.dir/src/monitor/cpu_stat_monitor.cpp.s
+
+CMakeFiles/worker.dir/src/monitor/mem_monitor.cpp.o: CMakeFiles/worker.dir/flags.make
+CMakeFiles/worker.dir/src/monitor/mem_monitor.cpp.o: /home/lz/lz_ws/perf_monitor/worker/src/monitor/mem_monitor.cpp
+CMakeFiles/worker.dir/src/monitor/mem_monitor.cpp.o: CMakeFiles/worker.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/lz/lz_ws/perf_monitor/worker/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/worker.dir/src/monitor/mem_monitor.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/worker.dir/src/monitor/mem_monitor.cpp.o -MF CMakeFiles/worker.dir/src/monitor/mem_monitor.cpp.o.d -o CMakeFiles/worker.dir/src/monitor/mem_monitor.cpp.o -c /home/lz/lz_ws/perf_monitor/worker/src/monitor/mem_monitor.cpp
+
+CMakeFiles/worker.dir/src/monitor/mem_monitor.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/worker.dir/src/monitor/mem_monitor.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/lz/lz_ws/perf_monitor/worker/src/monitor/mem_monitor.cpp > CMakeFiles/worker.dir/src/monitor/mem_monitor.cpp.i
+
+CMakeFiles/worker.dir/src/monitor/mem_monitor.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/worker.dir/src/monitor/mem_monitor.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/lz/lz_ws/perf_monitor/worker/src/monitor/mem_monitor.cpp -o CMakeFiles/worker.dir/src/monitor/mem_monitor.cpp.s
+
+CMakeFiles/worker.dir/src/monitor/disk_monitor.cpp.o: CMakeFiles/worker.dir/flags.make
+CMakeFiles/worker.dir/src/monitor/disk_monitor.cpp.o: /home/lz/lz_ws/perf_monitor/worker/src/monitor/disk_monitor.cpp
+CMakeFiles/worker.dir/src/monitor/disk_monitor.cpp.o: CMakeFiles/worker.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/lz/lz_ws/perf_monitor/worker/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/worker.dir/src/monitor/disk_monitor.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/worker.dir/src/monitor/disk_monitor.cpp.o -MF CMakeFiles/worker.dir/src/monitor/disk_monitor.cpp.o.d -o CMakeFiles/worker.dir/src/monitor/disk_monitor.cpp.o -c /home/lz/lz_ws/perf_monitor/worker/src/monitor/disk_monitor.cpp
+
+CMakeFiles/worker.dir/src/monitor/disk_monitor.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/worker.dir/src/monitor/disk_monitor.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/lz/lz_ws/perf_monitor/worker/src/monitor/disk_monitor.cpp > CMakeFiles/worker.dir/src/monitor/disk_monitor.cpp.i
+
+CMakeFiles/worker.dir/src/monitor/disk_monitor.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/worker.dir/src/monitor/disk_monitor.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/lz/lz_ws/perf_monitor/worker/src/monitor/disk_monitor.cpp -o CMakeFiles/worker.dir/src/monitor/disk_monitor.cpp.s
+
 CMakeFiles/worker.dir/src/utils/read_file.cpp.o: CMakeFiles/worker.dir/flags.make
 CMakeFiles/worker.dir/src/utils/read_file.cpp.o: /home/lz/lz_ws/perf_monitor/worker/src/utils/read_file.cpp
 CMakeFiles/worker.dir/src/utils/read_file.cpp.o: CMakeFiles/worker.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/lz/lz_ws/perf_monitor/worker/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/worker.dir/src/utils/read_file.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/lz/lz_ws/perf_monitor/worker/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/worker.dir/src/utils/read_file.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/worker.dir/src/utils/read_file.cpp.o -MF CMakeFiles/worker.dir/src/utils/read_file.cpp.o.d -o CMakeFiles/worker.dir/src/utils/read_file.cpp.o -c /home/lz/lz_ws/perf_monitor/worker/src/utils/read_file.cpp
 
 CMakeFiles/worker.dir/src/utils/read_file.cpp.i: cmake_force
@@ -130,6 +172,9 @@ worker_OBJECTS = \
 "CMakeFiles/worker.dir/src/main.cpp.o" \
 "CMakeFiles/worker.dir/src/monitor/cpu_load_monitor.cpp.o" \
 "CMakeFiles/worker.dir/src/monitor/cpu_softirq_monitor.cpp.o" \
+"CMakeFiles/worker.dir/src/monitor/cpu_stat_monitor.cpp.o" \
+"CMakeFiles/worker.dir/src/monitor/mem_monitor.cpp.o" \
+"CMakeFiles/worker.dir/src/monitor/disk_monitor.cpp.o" \
 "CMakeFiles/worker.dir/src/utils/read_file.cpp.o"
 
 # External object files for target worker
@@ -138,6 +183,9 @@ worker_EXTERNAL_OBJECTS =
 worker: CMakeFiles/worker.dir/src/main.cpp.o
 worker: CMakeFiles/worker.dir/src/monitor/cpu_load_monitor.cpp.o
 worker: CMakeFiles/worker.dir/src/monitor/cpu_softirq_monitor.cpp.o
+worker: CMakeFiles/worker.dir/src/monitor/cpu_stat_monitor.cpp.o
+worker: CMakeFiles/worker.dir/src/monitor/mem_monitor.cpp.o
+worker: CMakeFiles/worker.dir/src/monitor/disk_monitor.cpp.o
 worker: CMakeFiles/worker.dir/src/utils/read_file.cpp.o
 worker: CMakeFiles/worker.dir/build.make
 worker: /usr/lib/x86_64-linux-gnu/libgrpc++.so.1.51.1
@@ -196,7 +244,7 @@ worker: /usr/lib/x86_64-linux-gnu/libabsl_time_zone.so.20220623.0.0
 worker: /usr/lib/x86_64-linux-gnu/libssl.so
 worker: /usr/lib/x86_64-linux-gnu/libcrypto.so
 worker: CMakeFiles/worker.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/lz/lz_ws/perf_monitor/worker/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX executable worker"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/lz/lz_ws/perf_monitor/worker/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Linking CXX executable worker"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/worker.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
