@@ -249,6 +249,30 @@ src/monitor/disk_monitor.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/monitor/disk_monitor.cpp.s
 .PHONY : src/monitor/disk_monitor.cpp.s
 
+src/monitor/host_info_monitor.o: src/monitor/host_info_monitor.cpp.o
+.PHONY : src/monitor/host_info_monitor.o
+
+# target to build an object file
+src/monitor/host_info_monitor.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/monitor/host_info_monitor.cpp.o
+.PHONY : src/monitor/host_info_monitor.cpp.o
+
+src/monitor/host_info_monitor.i: src/monitor/host_info_monitor.cpp.i
+.PHONY : src/monitor/host_info_monitor.i
+
+# target to preprocess a source file
+src/monitor/host_info_monitor.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/monitor/host_info_monitor.cpp.i
+.PHONY : src/monitor/host_info_monitor.cpp.i
+
+src/monitor/host_info_monitor.s: src/monitor/host_info_monitor.cpp.s
+.PHONY : src/monitor/host_info_monitor.s
+
+# target to generate assembly for a file
+src/monitor/host_info_monitor.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/monitor/host_info_monitor.cpp.s
+.PHONY : src/monitor/host_info_monitor.cpp.s
+
 src/monitor/mem_monitor.o: src/monitor/mem_monitor.cpp.o
 .PHONY : src/monitor/mem_monitor.o
 
@@ -272,6 +296,78 @@ src/monitor/mem_monitor.s: src/monitor/mem_monitor.cpp.s
 src/monitor/mem_monitor.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/monitor/mem_monitor.cpp.s
 .PHONY : src/monitor/mem_monitor.cpp.s
+
+src/monitor/metric_collector.o: src/monitor/metric_collector.cpp.o
+.PHONY : src/monitor/metric_collector.o
+
+# target to build an object file
+src/monitor/metric_collector.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/monitor/metric_collector.cpp.o
+.PHONY : src/monitor/metric_collector.cpp.o
+
+src/monitor/metric_collector.i: src/monitor/metric_collector.cpp.i
+.PHONY : src/monitor/metric_collector.i
+
+# target to preprocess a source file
+src/monitor/metric_collector.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/monitor/metric_collector.cpp.i
+.PHONY : src/monitor/metric_collector.cpp.i
+
+src/monitor/metric_collector.s: src/monitor/metric_collector.cpp.s
+.PHONY : src/monitor/metric_collector.s
+
+# target to generate assembly for a file
+src/monitor/metric_collector.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/monitor/metric_collector.cpp.s
+.PHONY : src/monitor/metric_collector.cpp.s
+
+src/monitor/net_monitor.o: src/monitor/net_monitor.cpp.o
+.PHONY : src/monitor/net_monitor.o
+
+# target to build an object file
+src/monitor/net_monitor.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/monitor/net_monitor.cpp.o
+.PHONY : src/monitor/net_monitor.cpp.o
+
+src/monitor/net_monitor.i: src/monitor/net_monitor.cpp.i
+.PHONY : src/monitor/net_monitor.i
+
+# target to preprocess a source file
+src/monitor/net_monitor.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/monitor/net_monitor.cpp.i
+.PHONY : src/monitor/net_monitor.cpp.i
+
+src/monitor/net_monitor.s: src/monitor/net_monitor.cpp.s
+.PHONY : src/monitor/net_monitor.s
+
+# target to generate assembly for a file
+src/monitor/net_monitor.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/monitor/net_monitor.cpp.s
+.PHONY : src/monitor/net_monitor.cpp.s
+
+src/monitor/user_monitor.o: src/monitor/user_monitor.cpp.o
+.PHONY : src/monitor/user_monitor.o
+
+# target to build an object file
+src/monitor/user_monitor.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/monitor/user_monitor.cpp.o
+.PHONY : src/monitor/user_monitor.cpp.o
+
+src/monitor/user_monitor.i: src/monitor/user_monitor.cpp.i
+.PHONY : src/monitor/user_monitor.i
+
+# target to preprocess a source file
+src/monitor/user_monitor.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/monitor/user_monitor.cpp.i
+.PHONY : src/monitor/user_monitor.cpp.i
+
+src/monitor/user_monitor.s: src/monitor/user_monitor.cpp.s
+.PHONY : src/monitor/user_monitor.s
+
+# target to generate assembly for a file
+src/monitor/user_monitor.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/monitor/user_monitor.cpp.s
+.PHONY : src/monitor/user_monitor.cpp.s
 
 src/utils/read_file.o: src/utils/read_file.cpp.o
 .PHONY : src/utils/read_file.o
@@ -321,9 +417,21 @@ help:
 	@echo "... src/monitor/disk_monitor.o"
 	@echo "... src/monitor/disk_monitor.i"
 	@echo "... src/monitor/disk_monitor.s"
+	@echo "... src/monitor/host_info_monitor.o"
+	@echo "... src/monitor/host_info_monitor.i"
+	@echo "... src/monitor/host_info_monitor.s"
 	@echo "... src/monitor/mem_monitor.o"
 	@echo "... src/monitor/mem_monitor.i"
 	@echo "... src/monitor/mem_monitor.s"
+	@echo "... src/monitor/metric_collector.o"
+	@echo "... src/monitor/metric_collector.i"
+	@echo "... src/monitor/metric_collector.s"
+	@echo "... src/monitor/net_monitor.o"
+	@echo "... src/monitor/net_monitor.i"
+	@echo "... src/monitor/net_monitor.s"
+	@echo "... src/monitor/user_monitor.o"
+	@echo "... src/monitor/user_monitor.i"
+	@echo "... src/monitor/user_monitor.s"
 	@echo "... src/utils/read_file.o"
 	@echo "... src/utils/read_file.i"
 	@echo "... src/utils/read_file.s"

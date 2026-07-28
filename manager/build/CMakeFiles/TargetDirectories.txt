@@ -1,0 +1,3 @@
+/home/lz/lz_ws/perf_monitor/manager/build/CMakeFiles/manager.dir
+/home/lz/lz_ws/perf_monitor/manager/build/CMakeFiles/edit_cache.dir
+/home/lz/lz_ws/perf_monitor/manager/build/CMakeFiles/rebuild_cache.dir

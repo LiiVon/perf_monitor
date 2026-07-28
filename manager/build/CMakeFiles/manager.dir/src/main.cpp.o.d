@@ -1,9 +1,9 @@
-CMakeFiles/worker.dir/src/main.cpp.o: \
- /home/lz/lz_ws/perf_monitor/worker/src/main.cpp \
+CMakeFiles/manager.dir/src/main.cpp.o: \
+ /home/lz/lz_ws/perf_monitor/manager/src/main.cpp \
  /usr/include/stdc-predef.h \
- /home/lz/lz_ws/perf_monitor/worker/include/monitor/metric_collector.h \
- /home/lz/lz_ws/perf_monitor/worker/include/monitor/monitor_inter.h \
- /usr/include/c++/13/string /usr/include/c++/13/bits/requires_hosted.h \
+ /home/lz/lz_ws/perf_monitor/manager/../proto/build/monitor_info.grpc.pb.h \
+ /home/lz/lz_ws/perf_monitor/manager/../proto/build/monitor_info.pb.h \
+ /usr/include/c++/13/limits \
  /usr/include/x86_64-linux-gnu/c++/13/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/13/bits/os_defines.h \
  /usr/include/features.h /usr/include/features-time64.h \
@@ -14,7 +14,8 @@ CMakeFiles/worker.dir/src/main.cpp.o: \
  /usr/include/x86_64-linux-gnu/gnu/stubs.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs-64.h \
  /usr/include/x86_64-linux-gnu/c++/13/bits/cpu_defines.h \
- /usr/include/c++/13/pstl/pstl_config.h \
+ /usr/include/c++/13/pstl/pstl_config.h /usr/include/c++/13/string \
+ /usr/include/c++/13/bits/requires_hosted.h \
  /usr/include/c++/13/bits/stringfwd.h \
  /usr/include/c++/13/bits/memoryfwd.h \
  /usr/include/c++/13/bits/char_traits.h \
@@ -117,8 +118,7 @@ CMakeFiles/worker.dir/src/main.cpp.o: \
  /usr/include/c++/13/bits/memory_resource.h /usr/include/c++/13/cstddef \
  /usr/include/c++/13/bits/uses_allocator.h \
  /usr/include/c++/13/bits/uses_allocator_args.h /usr/include/c++/13/tuple \
- /home/lz/lz_ws/perf_monitor/worker/../proto/build/monitor_info.pb.h \
- /usr/include/c++/13/limits /usr/include/google/protobuf/port_def.inc \
+ /usr/include/google/protobuf/port_def.inc \
  /usr/include/google/protobuf/port_undef.inc \
  /usr/include/google/protobuf/io/coded_stream.h /usr/include/assert.h \
  /usr/include/c++/13/atomic /usr/include/c++/13/bits/atomic_base.h \
@@ -261,14 +261,12 @@ CMakeFiles/worker.dir/src/main.cpp.o: \
  /usr/include/google/protobuf/empty.pb.h \
  /usr/include/google/protobuf/generated_message_bases.h \
  /usr/include/google/protobuf/io/zero_copy_stream_impl.h \
- /home/lz/lz_ws/perf_monitor/worker/../proto/build/net_info.pb.h \
- /home/lz/lz_ws/perf_monitor/worker/../proto/build/mem_info.pb.h \
- /home/lz/lz_ws/perf_monitor/worker/../proto/build/cpu_stat.pb.h \
- /home/lz/lz_ws/perf_monitor/worker/../proto/build/cpu_softirq.pb.h \
- /home/lz/lz_ws/perf_monitor/worker/../proto/build/cpu_load.pb.h \
- /home/lz/lz_ws/perf_monitor/worker/../proto/build/disk_info.pb.h \
- /home/lz/lz_ws/perf_monitor/worker/../proto/build/monitor_info.grpc.pb.h \
- /home/lz/lz_ws/perf_monitor/worker/../proto/build/monitor_info.pb.h \
+ /home/lz/lz_ws/perf_monitor/manager/../proto/build/net_info.pb.h \
+ /home/lz/lz_ws/perf_monitor/manager/../proto/build/mem_info.pb.h \
+ /home/lz/lz_ws/perf_monitor/manager/../proto/build/cpu_stat.pb.h \
+ /home/lz/lz_ws/perf_monitor/manager/../proto/build/cpu_softirq.pb.h \
+ /home/lz/lz_ws/perf_monitor/manager/../proto/build/cpu_load.pb.h \
+ /home/lz/lz_ws/perf_monitor/manager/../proto/build/disk_info.pb.h \
  /usr/include/grpcpp/generic/async_generic_service.h \
  /usr/include/grpc/impl/codegen/port_platform.h \
  /usr/include/linux/version.h \
@@ -421,8 +419,10 @@ CMakeFiles/worker.dir/src/main.cpp.o: \
  /usr/include/grpcpp/impl/codegen/proto_buffer_writer.h \
  /usr/include/grpcpp/support/proto_buffer_writer.h \
  /usr/include/grpcpp/impl/codegen/serialization_traits.h \
- /usr/include/grpcpp/support/stub_options.h /usr/include/grpcpp/grpcpp.h \
- /usr/include/grpcpp/channel.h /usr/include/grpcpp/create_channel.h \
+ /usr/include/grpcpp/support/stub_options.h \
+ /home/lz/lz_ws/perf_monitor/manager/../proto/build/monitor_info.pb.h \
+ /usr/include/grpcpp/grpcpp.h /usr/include/grpcpp/channel.h \
+ /usr/include/grpcpp/create_channel.h \
  /usr/include/grpcpp/security/credentials.h \
  /usr/include/grpc/grpc_security_constants.h \
  /usr/include/grpcpp/security/tls_credentials_options.h \
@@ -443,28 +443,4 @@ CMakeFiles/worker.dir/src/main.cpp.o: \
  /usr/include/grpcpp/impl/server_builder_option.h \
  /usr/include/grpcpp/impl/server_builder_plugin.h \
  /usr/include/grpcpp/security/authorization_policy_provider.h \
- /usr/include/grpcpp/server_posix.h /usr/include/grpcpp/version_info.h \
- /usr/include/c++/13/csignal /usr/include/signal.h \
- /usr/include/x86_64-linux-gnu/bits/signum-generic.h \
- /usr/include/x86_64-linux-gnu/bits/signum-arch.h \
- /usr/include/x86_64-linux-gnu/bits/types/sig_atomic_t.h \
- /usr/include/x86_64-linux-gnu/bits/types/siginfo_t.h \
- /usr/include/x86_64-linux-gnu/bits/types/__sigval_t.h \
- /usr/include/x86_64-linux-gnu/bits/siginfo-arch.h \
- /usr/include/x86_64-linux-gnu/bits/siginfo-consts.h \
- /usr/include/x86_64-linux-gnu/bits/siginfo-consts-arch.h \
- /usr/include/x86_64-linux-gnu/bits/types/sigval_t.h \
- /usr/include/x86_64-linux-gnu/bits/types/sigevent_t.h \
- /usr/include/x86_64-linux-gnu/bits/sigevent-consts.h \
- /usr/include/x86_64-linux-gnu/bits/sigaction.h \
- /usr/include/x86_64-linux-gnu/bits/sigcontext.h \
- /usr/include/x86_64-linux-gnu/bits/types/stack_t.h \
- /usr/include/x86_64-linux-gnu/sys/ucontext.h \
- /usr/include/x86_64-linux-gnu/bits/sigstack.h \
- /usr/include/x86_64-linux-gnu/bits/sigstksz.h \
- /usr/include/x86_64-linux-gnu/bits/ss_flags.h \
- /usr/include/x86_64-linux-gnu/bits/types/struct_sigstack.h \
- /usr/include/x86_64-linux-gnu/bits/sigthread.h \
- /usr/include/x86_64-linux-gnu/bits/signal_ext.h \
- /usr/include/c++/13/thread /usr/include/c++/13/bits/std_thread.h \
- /usr/include/c++/13/bits/this_thread_sleep.h
+ /usr/include/grpcpp/server_posix.h /usr/include/grpcpp/version_info.h

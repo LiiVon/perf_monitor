@@ -41,3 +41,31 @@
 # endif()
 
 # target_link_libraries(manager PUBLIC ${MANAGER_LIBS})
+cmake_minimum_required(VERSION 3.10)
+project(Manager)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# 查找 gRPC 和 Protobuf（与 Worker 一致）
+find_package(gRPC CONFIG REQUIRED)
+find_package(Protobuf REQUIRED)
+
+# 指定 proto 库路径（假设 proto 构建在 ../proto/build）
+set(PROTO_BUILD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../proto/build)
+link_directories(${PROTO_BUILD_DIR})
+include_directories(${PROTO_BUILD_DIR})
+
+add_executable(manager src/main.cpp)
+
+target_link_libraries(manager
+    monitor_proto
+    gRPC::grpc++
+    gRPC::grpc
+    protobuf::libprotobuf
+    pthread
+    dl
+)
+
+# 添加头文件路径（proto 生成的头文件）
+target_include_directories(manager PRIVATE ${PROTO_BUILD_DIR})
