@@ -18,7 +18,7 @@ namespace monitor
     {
         monitor::proto::MonitorInfo monitor_info;        // 完整的监控数据
         double score;                                    // 计算出的综合评分（0~100）
-        std::chrono::steady_clock::time_point timestamp; // 最后更新时间
+        std::chrono::system_clock::time_point timestamp; // 最后更新时间
     };
 
     // 所有变化率（用于 WriteToMysql）

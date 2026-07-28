@@ -1,3 +1,0 @@
-/home/lz/lz_ws/perf_monitor/proto/build/CMakeFiles/monitor_proto.dir
-/home/lz/lz_ws/perf_monitor/proto/build/CMakeFiles/edit_cache.dir
-/home/lz/lz_ws/perf_monitor/proto/build/CMakeFiles/rebuild_cache.dir

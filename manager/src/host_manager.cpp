@@ -201,7 +201,7 @@ namespace monitor
         while (running_)
         {
             std::this_thread::sleep_for(std::chrono::seconds(60));
-            auto now = std::chrono::steady_clock::now();
+            auto now = std::chrono::system_clock::now();
             std::lock_guard<std::mutex> lock(mtx_);
             for (auto it = host_scores_.begin(); it != host_scores_.end();)
             {
@@ -231,7 +231,7 @@ namespace monitor
 
         // 计算评分
         double score = CalcScore(info);
-        auto now = std::chrono::steady_clock::now();
+        auto now = std::chrono::system_clock::now();
 
         // 提取网络速率（MB/s）
         double net_in_rate = 0, net_out_rate = 0;
@@ -445,7 +445,7 @@ namespace monitor
         char time_buf[32];
         std::strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", &tm_time);
 
-        const auto &info = host_score.info;
+        const auto &info = host_score.monitor_info;
         // rate 函数用于详细表
         auto rate = [](float now_val, float last_val) -> float
         {
