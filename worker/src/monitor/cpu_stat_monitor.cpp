@@ -7,90 +7,136 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <chrono>
+#include <cctype> // for isdigit
 
 namespace monitor
 {
     static const char *CPU_STAT_DEVICE = "/dev/cpu_stat_monitor";
     static constexpr size_t MAX_CPUS = 256;
 
+    // 辅助函数：填充 CPU 统计消息（与 mmap 和 proc 共用）
+    static void FillCpuStatMessage(monitor::proto::CpuStat *msg,
+                                   const struct cpu_stat &curr,
+                                   const struct cpu_stat *old)
+    {
+        if (!old)
+        {
+            // 首次采集，没有历史数据，无法计算百分比，跳过填充（但 msg 已创建）
+            // 也可以设置默认值，但留空更合理
+            return;
+        }
+        // 计算总时间差（浮点数防止溢出）
+        float new_total = curr.user + curr.nice + curr.system + curr.idle +
+                          curr.iowait + curr.irq + curr.softirq + curr.steal;
+        float old_total = old->user + old->nice + old->system + old->idle +
+                          old->iowait + old->irq + old->softirq + old->steal;
+        float delta_total = new_total - old_total;
+        if (delta_total <= 0)
+            return; // 防止除零
+
+        float new_busy = curr.user + curr.nice + curr.system +
+                         curr.irq + curr.softirq + curr.steal;
+        float old_busy = old->user + old->nice + old->system +
+                         old->irq + old->softirq + old->steal;
+
+        msg->set_cpu_name(curr.cpu_name);
+        msg->set_cpu_percent((new_busy - old_busy) / delta_total * 100.0f);
+        msg->set_usr_percent((curr.user - old->user) / delta_total * 100.0f);
+        msg->set_nice_percent((curr.nice - old->nice) / delta_total * 100.0f);
+        msg->set_system_percent((curr.system - old->system) / delta_total * 100.0f);
+        msg->set_idle_percent((curr.idle - old->idle) / delta_total * 100.0f);
+        msg->set_io_wait_percent((curr.iowait - old->iowait) / delta_total * 100.0f);
+        msg->set_irq_percent((curr.irq - old->irq) / delta_total * 100.0f);
+        msg->set_soft_irq_percent((curr.softirq - old->softirq) / delta_total * 100.0f);
+    }
+
     void CpuStatMonitor::UpdateOnce(monitor::proto::MonitorInfo *monitor_info)
     {
+        // ==================== 优先尝试内核模块 ====================
         int fd = open(CPU_STAT_DEVICE, O_RDONLY);
-        if (fd < 0)
+        if (fd >= 0)
         {
-            // 设备不存在，可能内核模块未加载
-            return;
-        }
-
-        size_t map_size = sizeof(struct cpu_stat) * MAX_CPUS;
-        void *addr = mmap(nullptr, map_size, PROT_READ, MAP_SHARED, fd, 0);
-        if (addr == MAP_FAILED)
-        {
-            close(fd);
-            return;
-        }
-
-        struct cpu_stat *stats = static_cast<struct cpu_stat *>(addr);
-        for (size_t i = 0; i < MAX_CPUS; ++i)
-        {
-            if (stats[i].cpu_name[0] == '\0')
+            size_t map_size = sizeof(struct cpu_stat) * MAX_CPUS;
+            void *addr = mmap(nullptr, map_size, PROT_READ, MAP_SHARED, fd, 0);
+            if (addr != MAP_FAILED)
             {
-                break;
+                struct cpu_stat *stats = static_cast<struct cpu_stat *>(addr);
+                for (size_t i = 0; i < MAX_CPUS; ++i)
+                {
+                    if (stats[i].cpu_name[0] == '\0')
+                        break;
+                    std::string cpu_name(stats[i].cpu_name);
+                    auto it = cpu_stats_.find(cpu_name);
+                    auto *msg = monitor_info->add_cpu_stat();
+                    if (it != cpu_stats_.end())
+                    {
+                        FillCpuStatMessage(msg, stats[i], &it->second);
+                    }
+                    // 更新缓存（无论是否首次）
+                    cpu_stats_[cpu_name] = stats[i];
+                }
+                munmap(addr, map_size);
+                close(fd);
+                return;
+            }
+            close(fd);
+        }
+
+        
+
+        // ==================== 回退：从 /proc/stat 读取 ====================
+        ReadFile rf("/proc/stat");
+        std::vector<std::string> args;
+        while (rf.ReadLine(&args))
+        {
+            if (args.size() < 11)
+            {
+                args.clear();
+                continue;
+            }
+            std::string cpu_name = args[0];
+            // 只处理 "cpu" 后跟数字的行（如 cpu0, cpu1...），跳过 "cpu" 总行
+            if (cpu_name.size() <= 3 || cpu_name.substr(0, 3) != "cpu")
+            {
+                args.clear();
+                continue;
+            }
+            if (!isdigit(cpu_name[3]))
+            { // 确保是 cpu0, cpu1 等
+                args.clear();
+                continue;
             }
 
-            auto it = cpu_stats_.find(stats[i].cpu_name);
+            // 解析各字段
+            struct cpu_stat curr;
+            strncpy(curr.cpu_name, cpu_name.c_str(), sizeof(curr.cpu_name) - 1);
+            curr.cpu_name[sizeof(curr.cpu_name) - 1] = '\0';
+            curr.user = std::stoull(args[1]);
+            curr.nice = std::stoull(args[2]);
+            curr.system = std::stoull(args[3]);
+            curr.idle = std::stoull(args[4]);
+            curr.iowait = std::stoull(args[5]);
+            curr.irq = std::stoull(args[6]);
+            curr.softirq = std::stoull(args[7]);
+            curr.steal = std::stoull(args[8]);
+            curr.guest = std::stoull(args[9]);
+            curr.guest_nice = std::stoull(args[10]);
+
+            auto it = cpu_stats_.find(cpu_name);
+            auto *msg = monitor_info->add_cpu_stat();
             if (it != cpu_stats_.end())
             {
-                struct cpu_stat &old = it->second;
-                auto cpu_stat_msg = monitor_info->add_cpu_stat();
-
-                float new_cpu_total_time =
-                    stats[i].user + stats[i].nice + stats[i].system + stats[i].idle +
-                    stats[i].iowait + stats[i].irq + stats[i].softirq + stats[i].steal;
-
-                float old_cpu_total_time =
-                    old.user + old.nice + old.system + old.idle +
-                    old.iowait + old.irq + old.softirq + old.steal;
-
-                float new_cpu_busy_time =
-                    stats[i].user + stats[i].nice + stats[i].system +
-                    stats[i].irq + stats[i].softirq + stats[i].steal;
-
-                float old_cpu_busy_time =
-                    old.user + old.nice + old.system +
-                    old.irq + old.softirq + old.steal;
-
-                float cpu_percent = (new_cpu_busy_time - old_cpu_busy_time) / (new_cpu_total_time - old_cpu_total_time) * 100.0f;
-                float cpu_user_percent = (stats[i].user - old.user) / (new_cpu_total_time - old_cpu_total_time) * 100.0f;
-                float cpu_nice_percent = (stats[i].nice - old.nice) / (new_cpu_total_time - old_cpu_total_time) * 100.0f;
-                float cpu_system_percent = (stats[i].system - old.system) / (new_cpu_total_time - old_cpu_total_time) * 100.0f;
-                float cpu_idle_percent = (stats[i].idle - old.idle) / (new_cpu_total_time - old_cpu_total_time) * 100.0f;
-                float cpu_iowait_percent = (stats[i].iowait - old.iowait) / (new_cpu_total_time - old_cpu_total_time) * 100.0f;
-                float cpu_irq_percent = (stats[i].irq - old.irq) / (new_cpu_total_time - old_cpu_total_time) * 100.0f;
-                float cpu_softirq_percent = (stats[i].softirq - old.softirq) / (new_cpu_total_time - old_cpu_total_time) * 100.0f;
-
-                cpu_stat_msg->set_cpu_name(stats[i].cpu_name);
-                cpu_stat_msg->set_cpu_percent(cpu_percent);
-                cpu_stat_msg->set_usr_percent(cpu_user_percent);
-                cpu_stat_msg->set_nice_percent(cpu_nice_percent);
-                cpu_stat_msg->set_system_percent(cpu_system_percent);
-                cpu_stat_msg->set_idle_percent(cpu_idle_percent);
-                cpu_stat_msg->set_io_wait_percent(cpu_iowait_percent);
-                cpu_stat_msg->set_irq_percent(cpu_irq_percent);
-                cpu_stat_msg->set_soft_irq_percent(cpu_softirq_percent);
+                FillCpuStatMessage(msg, curr, &it->second);
             }
-
-            // 更新缓存
-            cpu_stats_[stats[i].cpu_name] = stats[i];
-
+            // 更新缓存（首次也会插入）
+            cpu_stats_[cpu_name] = curr;
+            args.clear();
         }
-        munmap(addr, map_size);
-        close(fd);
-        return;
     }
 
     void CpuStatMonitor::Stop()
     {
-        // 这里可以实现一些清理工作，如果有需要的话
+        // 无资源需要释放
     }
 }
