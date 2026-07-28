@@ -10,27 +10,52 @@
 #include <unordered_map>
 #include <vector>
 
-// 处理 GrpcServerImpl 转交过来的数据。计算主机评分（CalcScore），启动后台线程处理数据，并负责写入 MySQL。
+// 连接“网络接收层”（GrpcServerImpl）和“数据存储层”（MySQL）的核心枢纽。
 namespace monitor
 {
-    // HostScore 结构体用于存储主机的监控信息、评分和时间戳
+    // 主机评分数据
     struct HostScore
     {
-        monitor::proto::MonitorInfo monitor_info;
-        double score;
-        std::chrono::steady_clock::time_point timestamp;
+        monitor::proto::MonitorInfo monitor_info;        // 完整的监控数据
+        double score;                                    // 计算出的综合评分（0~100）
+        std::chrono::steady_clock::time_point timestamp; // 最后更新时间
+    };
+
+    // 所有变化率（用于 WriteToMysql）
+    struct RateInfo
+    {
+        float cpu_percent = 0;
+        float usr_percent = 0;
+        float system_percent = 0;
+        float nice_percent = 0;
+        float idle_percent = 0;
+        float io_wait_percent = 0;
+        float irq_percent = 0;
+        float soft_irq_percent = 0;
+        float load_avg_1 = 0;
+        float load_avg_5 = 0;
+        float load_avg_15 = 0;
+        float mem_used_percent = 0;
+        float mem_total = 0;
+        float mem_free = 0;
+        float mem_avail = 0;
+        float net_in_rate = 0;
+        float net_out_rate = 0;
+        // 以下字段未使用，但保留以防万一
+        float net_in_drop_rate = 0;
+        float net_out_drop_rate = 0;
     };
 
     // 管理多个远程主机的监控数据（推送模式）
     class HostManager
     {
     public:
-        HostManager() = default;
-        ~HostManager() = default;
+        HostManager();
+        ~HostManager();
 
         // 启动后台处理线程
         void Start();
-        void stop();
+        void Stop();
 
         // 接收工作者推送的数据（由 gRPC 服务调用）
         void OnDataReceived(const monitor::proto::MonitorInfo &monitor_info);
@@ -48,19 +73,26 @@ namespace monitor
         // 计算主机评分
         double CalcScore(const monitor::proto::MonitorInfo &monitor_info);
 
-        void WriteToMysql(const std::string &host_name, const HostScore &host_score,
-                          double net_in_rate, double net_out_rate,
-                          float cpu_percent_rate, float usr_percent_rate,
-                          float system_percent_rate, float nice_percent_rate,
-                          float idle_percent_rate, float io_wait_percent_rate,
-                          float irq_percent_rate, float soft_irq_percent_rate,
-                          float steal_percent_rate, float guest_percent_rate,
-                          float guest_nice_percent_rate, float load_avg_1_rate,
-                          float load_avg_3_rate, float load_avg_15_rate,
-                          float mem_used_percent_rate, float mem_total_rate,
-                          float mem_free_rate, float mem_avail_rate,
-                          float net_in_rate_rate, float net_out_rate_rate,
-                          float net_in_drop_rate_rate, float net_out_drop_rate_rate);
+        // 写入 MySQL（参数已简化为 RateInfo）
+        void WriteToMysql(const std::string &host_name,
+                          const HostScore &host_score,
+                          double net_in_rate,
+                          double net_out_rate,
+                          const RateInfo &rates);
+
+        // 辅助：提取主机名
+        static std::string ExtractHostName(const monitor::proto::MonitorInfo &info);
+
+        // 辅助：提取性能数据（当前采样）
+        static void ExtractPerfData(const monitor::proto::MonitorInfo &info,
+                                    double net_in_rate,
+                                    double net_out_rate,
+                                    double score,
+                                    struct PerfSample &curr);
+
+        // 辅助：计算变化率
+        static RateInfo ComputeRates(const struct PerfSample &curr,
+                                     const struct PerfSample &last);
 
         std::unordered_map<std::string, HostScore> host_scores_;
         std::mutex mtx_;
@@ -68,3 +100,14 @@ namespace monitor
         std::unique_ptr<std::thread> thread_;
     };
 }
+
+/*
+Worker (采集)
+    ↓ gRPC
+GrpcServerImpl (接收)
+    ↓ 回调
+HostManager (业务处理)
+    ├─ 内存缓存 (host_scores_) → 供查询
+    ├─ MySQL (5张表) → 持久化
+    └─ 后台线程 (ProcessLoop) → 清理离线主机
+*/

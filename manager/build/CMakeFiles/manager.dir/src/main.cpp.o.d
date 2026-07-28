@@ -1,6 +1,7 @@
 CMakeFiles/manager.dir/src/main.cpp.o: \
  /home/lz/lz_ws/perf_monitor/manager/src/main.cpp \
  /usr/include/stdc-predef.h \
+ /home/lz/lz_ws/perf_monitor/manager/include/rpc/grpc_server.h \
  /home/lz/lz_ws/perf_monitor/manager/../proto/build/monitor_info.grpc.pb.h \
  /home/lz/lz_ws/perf_monitor/manager/../proto/build/monitor_info.pb.h \
  /usr/include/c++/13/limits \
@@ -421,14 +422,15 @@ CMakeFiles/manager.dir/src/main.cpp.o: \
  /usr/include/grpcpp/impl/codegen/serialization_traits.h \
  /usr/include/grpcpp/support/stub_options.h \
  /home/lz/lz_ws/perf_monitor/manager/../proto/build/monitor_info.pb.h \
- /home/lz/lz_ws/perf_monitor/manager/include/rpc/grpc_server.h \
  /usr/include/c++/13/queue /usr/include/c++/13/deque \
  /usr/include/c++/13/bits/stl_deque.h /usr/include/c++/13/bits/deque.tcc \
  /usr/include/c++/13/bits/stl_queue.h /usr/include/c++/13/thread \
  /usr/include/c++/13/bits/std_thread.h \
  /usr/include/c++/13/bits/this_thread_sleep.h \
- /usr/include/c++/13/condition_variable /usr/include/grpcpp/grpcpp.h \
- /usr/include/grpcpp/channel.h /usr/include/grpcpp/create_channel.h \
+ /usr/include/c++/13/condition_variable \
+ /home/lz/lz_ws/perf_monitor/manager/include/host_manager.h \
+ /usr/include/grpcpp/grpcpp.h /usr/include/grpcpp/channel.h \
+ /usr/include/grpcpp/create_channel.h \
  /usr/include/grpcpp/security/credentials.h \
  /usr/include/grpc/grpc_security_constants.h \
  /usr/include/grpcpp/security/tls_credentials_options.h \

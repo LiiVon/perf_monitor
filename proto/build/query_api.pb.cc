@@ -167,7 +167,7 @@ PROTOBUF_CONSTEXPR PerformanceRecord::PerformanceRecord(
   , /*decltype(_impl_.system_percent_rate_)*/0
   , /*decltype(_impl_.io_wait_percent_rate_)*/0
   , /*decltype(_impl_.load_avg_1_rate_)*/0
-  , /*decltype(_impl_.load_avg_3_rate_)*/0
+  , /*decltype(_impl_.load_avg_5_rate_)*/0
   , /*decltype(_impl_.load_avg_15_rate_)*/0
   , /*decltype(_impl_.mem_used_percent_rate_)*/0
   , /*decltype(_impl_.disk_util_percent_rate_)*/0
@@ -613,7 +613,7 @@ const uint32_t TableStruct_query_5fapi_2eproto::offsets[] PROTOBUF_SECTION_VARIA
   PROTOBUF_FIELD_OFFSET(::monitor::proto::PerformanceRecord, _impl_.system_percent_rate_),
   PROTOBUF_FIELD_OFFSET(::monitor::proto::PerformanceRecord, _impl_.io_wait_percent_rate_),
   PROTOBUF_FIELD_OFFSET(::monitor::proto::PerformanceRecord, _impl_.load_avg_1_rate_),
-  PROTOBUF_FIELD_OFFSET(::monitor::proto::PerformanceRecord, _impl_.load_avg_3_rate_),
+  PROTOBUF_FIELD_OFFSET(::monitor::proto::PerformanceRecord, _impl_.load_avg_5_rate_),
   PROTOBUF_FIELD_OFFSET(::monitor::proto::PerformanceRecord, _impl_.load_avg_15_rate_),
   PROTOBUF_FIELD_OFFSET(::monitor::proto::PerformanceRecord, _impl_.mem_used_percent_rate_),
   PROTOBUF_FIELD_OFFSET(::monitor::proto::PerformanceRecord, _impl_.disk_util_percent_rate_),
@@ -943,7 +943,7 @@ const char descriptor_table_protodef_query_5fapi_2eproto[] PROTOBUF_SECTION_VARI
   "\n\020usr_percent_rate\030G \001(\002\022\033\n\023system_perce"
   "nt_rate\030H \001(\002\022\034\n\024io_wait_percent_rate\030I "
   "\001(\002\022\027\n\017load_avg_1_rate\030J \001(\002\022\027\n\017load_avg"
-  "_3_rate\030K \001(\002\022\030\n\020load_avg_15_rate\030L \001(\002\022"
+  "_5_rate\030K \001(\002\022\030\n\020load_avg_15_rate\030L \001(\002\022"
   "\035\n\025mem_used_percent_rate\030M \001(\002\022\036\n\026disk_u"
   "til_percent_rate\030N \001(\002\022\026\n\016send_rate_rate"
   "\030O \001(\002\022\025\n\rrcv_rate_rate\030P \001(\002\"\262\001\n\rAnomal"
@@ -3189,7 +3189,7 @@ PerformanceRecord::PerformanceRecord(const PerformanceRecord& from)
     , decltype(_impl_.system_percent_rate_){}
     , decltype(_impl_.io_wait_percent_rate_){}
     , decltype(_impl_.load_avg_1_rate_){}
-    , decltype(_impl_.load_avg_3_rate_){}
+    , decltype(_impl_.load_avg_5_rate_){}
     , decltype(_impl_.load_avg_15_rate_){}
     , decltype(_impl_.mem_used_percent_rate_){}
     , decltype(_impl_.disk_util_percent_rate_){}
@@ -3246,7 +3246,7 @@ inline void PerformanceRecord::SharedCtor(
     , decltype(_impl_.system_percent_rate_){0}
     , decltype(_impl_.io_wait_percent_rate_){0}
     , decltype(_impl_.load_avg_1_rate_){0}
-    , decltype(_impl_.load_avg_3_rate_){0}
+    , decltype(_impl_.load_avg_5_rate_){0}
     , decltype(_impl_.load_avg_15_rate_){0}
     , decltype(_impl_.mem_used_percent_rate_){0}
     , decltype(_impl_.disk_util_percent_rate_){0}
@@ -3512,10 +3512,10 @@ const char* PerformanceRecord::_InternalParse(const char* ptr, ::_pbi::ParseCont
         } else
           goto handle_unusual;
         continue;
-      // float load_avg_3_rate = 75;
+      // float load_avg_5_rate = 75;
       case 75:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 93)) {
-          _impl_.load_avg_3_rate_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr);
+          _impl_.load_avg_5_rate_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr);
           ptr += sizeof(float);
         } else
           goto handle_unusual;
@@ -3846,14 +3846,14 @@ uint8_t* PerformanceRecord::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteFloatToArray(74, this->_internal_load_avg_1_rate(), target);
   }
 
-  // float load_avg_3_rate = 75;
+  // float load_avg_5_rate = 75;
   static_assert(sizeof(uint32_t) == sizeof(float), "Code assumes uint32_t and float are the same size.");
-  float tmp_load_avg_3_rate = this->_internal_load_avg_3_rate();
-  uint32_t raw_load_avg_3_rate;
-  memcpy(&raw_load_avg_3_rate, &tmp_load_avg_3_rate, sizeof(tmp_load_avg_3_rate));
-  if (raw_load_avg_3_rate != 0) {
+  float tmp_load_avg_5_rate = this->_internal_load_avg_5_rate();
+  uint32_t raw_load_avg_5_rate;
+  memcpy(&raw_load_avg_5_rate, &tmp_load_avg_5_rate, sizeof(tmp_load_avg_5_rate));
+  if (raw_load_avg_5_rate != 0) {
     target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteFloatToArray(75, this->_internal_load_avg_3_rate(), target);
+    target = ::_pbi::WireFormatLite::WriteFloatToArray(75, this->_internal_load_avg_5_rate(), target);
   }
 
   // float load_avg_15_rate = 76;
@@ -4152,12 +4152,12 @@ size_t PerformanceRecord::ByteSizeLong() const {
     total_size += 2 + 4;
   }
 
-  // float load_avg_3_rate = 75;
+  // float load_avg_5_rate = 75;
   static_assert(sizeof(uint32_t) == sizeof(float), "Code assumes uint32_t and float are the same size.");
-  float tmp_load_avg_3_rate = this->_internal_load_avg_3_rate();
-  uint32_t raw_load_avg_3_rate;
-  memcpy(&raw_load_avg_3_rate, &tmp_load_avg_3_rate, sizeof(tmp_load_avg_3_rate));
-  if (raw_load_avg_3_rate != 0) {
+  float tmp_load_avg_5_rate = this->_internal_load_avg_5_rate();
+  uint32_t raw_load_avg_5_rate;
+  memcpy(&raw_load_avg_5_rate, &tmp_load_avg_5_rate, sizeof(tmp_load_avg_5_rate));
+  if (raw_load_avg_5_rate != 0) {
     total_size += 2 + 4;
   }
 
@@ -4400,11 +4400,11 @@ void PerformanceRecord::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, cons
     _this->_internal_set_load_avg_1_rate(from._internal_load_avg_1_rate());
   }
   static_assert(sizeof(uint32_t) == sizeof(float), "Code assumes uint32_t and float are the same size.");
-  float tmp_load_avg_3_rate = from._internal_load_avg_3_rate();
-  uint32_t raw_load_avg_3_rate;
-  memcpy(&raw_load_avg_3_rate, &tmp_load_avg_3_rate, sizeof(tmp_load_avg_3_rate));
-  if (raw_load_avg_3_rate != 0) {
-    _this->_internal_set_load_avg_3_rate(from._internal_load_avg_3_rate());
+  float tmp_load_avg_5_rate = from._internal_load_avg_5_rate();
+  uint32_t raw_load_avg_5_rate;
+  memcpy(&raw_load_avg_5_rate, &tmp_load_avg_5_rate, sizeof(tmp_load_avg_5_rate));
+  if (raw_load_avg_5_rate != 0) {
+    _this->_internal_set_load_avg_5_rate(from._internal_load_avg_5_rate());
   }
   static_assert(sizeof(uint32_t) == sizeof(float), "Code assumes uint32_t and float are the same size.");
   float tmp_load_avg_15_rate = from._internal_load_avg_15_rate();

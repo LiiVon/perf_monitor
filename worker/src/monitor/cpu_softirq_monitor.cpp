@@ -188,11 +188,15 @@ namespace monitor
             close(fd);
         }
 
-        
         // ==================== 回退：从 /proc/softirqs 读取 ====================
         auto current_data = ReadSoftIrqFromProc();
         if (current_data.empty())
             return;
+
+        // 获取在线 CPU 数量，用于过滤（仅处理实际存在的 CPU）
+        int online_cpus = sysconf(_SC_NPROCESSORS_ONLN);
+        if (online_cpus <= 0)
+            online_cpus = 8; // fallback
 
         auto now = std::chrono::steady_clock::now();
 
@@ -200,6 +204,21 @@ namespace monitor
         for (auto &pair : current_data)
         {
             const std::string &cpu_name = pair.first;
+
+            // 过滤：仅处理 "CPU0" ~ "CPU{N-1}" 格式
+            if (cpu_name.size() <= 3 || cpu_name.substr(0, 3) != "CPU")
+                continue;
+            try
+            {
+                int cpu_num = std::stoi(cpu_name.substr(3));
+                if (cpu_num >= online_cpus)
+                    continue; // 跳过离线或无效 CPU
+            }
+            catch (...)
+            {
+                continue; // 转换失败也跳过
+            }
+
             const SoftIrq &curr = pair.second;
 
             auto it = cpu_softirqs_.find(cpu_name);

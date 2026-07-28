@@ -1784,7 +1784,7 @@ class PerformanceRecord final :
     kSystemPercentRateFieldNumber = 72,
     kIoWaitPercentRateFieldNumber = 73,
     kLoadAvg1RateFieldNumber = 74,
-    kLoadAvg3RateFieldNumber = 75,
+    kLoadAvg5RateFieldNumber = 75,
     kLoadAvg15RateFieldNumber = 76,
     kMemUsedPercentRateFieldNumber = 77,
     kDiskUtilPercentRateFieldNumber = 78,
@@ -2039,13 +2039,13 @@ class PerformanceRecord final :
   void _internal_set_load_avg_1_rate(float value);
   public:
 
-  // float load_avg_3_rate = 75;
-  void clear_load_avg_3_rate();
-  float load_avg_3_rate() const;
-  void set_load_avg_3_rate(float value);
+  // float load_avg_5_rate = 75;
+  void clear_load_avg_5_rate();
+  float load_avg_5_rate() const;
+  void set_load_avg_5_rate(float value);
   private:
-  float _internal_load_avg_3_rate() const;
-  void _internal_set_load_avg_3_rate(float value);
+  float _internal_load_avg_5_rate() const;
+  void _internal_set_load_avg_5_rate(float value);
   public:
 
   // float load_avg_15_rate = 76;
@@ -2127,7 +2127,7 @@ class PerformanceRecord final :
     float system_percent_rate_;
     float io_wait_percent_rate_;
     float load_avg_1_rate_;
-    float load_avg_3_rate_;
+    float load_avg_5_rate_;
     float load_avg_15_rate_;
     float mem_used_percent_rate_;
     float disk_util_percent_rate_;
@@ -7871,24 +7871,24 @@ inline void PerformanceRecord::set_load_avg_1_rate(float value) {
   // @@protoc_insertion_point(field_set:monitor.proto.PerformanceRecord.load_avg_1_rate)
 }
 
-// float load_avg_3_rate = 75;
-inline void PerformanceRecord::clear_load_avg_3_rate() {
-  _impl_.load_avg_3_rate_ = 0;
+// float load_avg_5_rate = 75;
+inline void PerformanceRecord::clear_load_avg_5_rate() {
+  _impl_.load_avg_5_rate_ = 0;
 }
-inline float PerformanceRecord::_internal_load_avg_3_rate() const {
-  return _impl_.load_avg_3_rate_;
+inline float PerformanceRecord::_internal_load_avg_5_rate() const {
+  return _impl_.load_avg_5_rate_;
 }
-inline float PerformanceRecord::load_avg_3_rate() const {
-  // @@protoc_insertion_point(field_get:monitor.proto.PerformanceRecord.load_avg_3_rate)
-  return _internal_load_avg_3_rate();
+inline float PerformanceRecord::load_avg_5_rate() const {
+  // @@protoc_insertion_point(field_get:monitor.proto.PerformanceRecord.load_avg_5_rate)
+  return _internal_load_avg_5_rate();
 }
-inline void PerformanceRecord::_internal_set_load_avg_3_rate(float value) {
+inline void PerformanceRecord::_internal_set_load_avg_5_rate(float value) {
   
-  _impl_.load_avg_3_rate_ = value;
+  _impl_.load_avg_5_rate_ = value;
 }
-inline void PerformanceRecord::set_load_avg_3_rate(float value) {
-  _internal_set_load_avg_3_rate(value);
-  // @@protoc_insertion_point(field_set:monitor.proto.PerformanceRecord.load_avg_3_rate)
+inline void PerformanceRecord::set_load_avg_5_rate(float value) {
+  _internal_set_load_avg_5_rate(value);
+  // @@protoc_insertion_point(field_set:monitor.proto.PerformanceRecord.load_avg_5_rate)
 }
 
 // float load_avg_15_rate = 76;

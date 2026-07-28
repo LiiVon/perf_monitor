@@ -54,44 +54,44 @@ namespace monitor
         size_t GetHostCount();
 
     private:
-        // 异步任务
-        struct CallbackTask
-        {
-            monitor::proto::MonitorInfo info;
-        };
+        // // 异步任务
+        // struct CallbackTask
+        // {
+        //     monitor::proto::MonitorInfo info;
+        // };
 
-        // 后台工作线程函数
-        void WorkerThread();
+        // // 后台工作线程函数
+        // void WorkerThread();
 
-        // 内存淘汰逻辑
-        //  如果只是无限制往 unordered_map 里存，遇到恶意伪造海量主机名，程序内存就会无限增长导致崩溃
-        void EvictIfNeeded();
+        // // 内存淘汰逻辑
+        // //  如果只是无限制往 unordered_map 里存，遇到恶意伪造海量主机名，程序内存就会无限增长导致崩溃
+        // void EvictIfNeeded();
 
-        // 存储数据到缓存
-        void StoreData(const std::string &hostname, const monitor::proto::MonitorInfo &info);
+        // // 存储数据到缓存
+        // void StoreData(const std::string &hostname, const monitor::proto::MonitorInfo &info);
 
     private:
-        std::mutex mtx_; // 保护 host_data_ 的互斥锁
-
+        std::mutex mtx_;          // 保护 host_data_ 的互斥锁
+        std::mutex callback_mtx_; // 保护回调函数的设置
         // 存储每个主机的监控数据和时间戳
-
         std::unordered_map<std::string, HostData> host_data_;
 
-        // 用于 LRU 淘汰的有序列表（记录主机名和更新时间）
-        // 记录了所有主机最近一次上报的时间顺序。最新上报的放在最前面，最久没上报的放在最后面。
-        std::list<std::pair<std::string, std::chrono::steady_clock::time_point>> lru_list_;
-        size_t max_hosts_ = 1000; // 最大缓存主机数，可配置
-
-        // 回调相关
         DataReceivedCallback callback_;
-        std::mutex callback_mtx_; // 保护回调函数的设置
 
-        // 异步任务队列
-        std::queue<CallbackTask> task_queue_;
-        std::mutex queue_mtx_;
-        std::condition_variable queue_cv_;
-        std::atomic<bool> running_;
-        std::thread worker_thread_;
+        // // 用于 LRU 淘汰的有序列表（记录主机名和更新时间）
+        // // 记录了所有主机最近一次上报的时间顺序。最新上报的放在最前面，最久没上报的放在最后面。
+        // std::list<std::pair<std::string, std::chrono::steady_clock::time_point>> lru_list_;
+        // size_t max_hosts_ = 1000; // 最大缓存主机数，可配置
+
+        // // 回调相关
+        //
+
+        // // 异步任务队列
+        // std::queue<CallbackTask> task_queue_;
+        // std::mutex queue_mtx_;
+        // std::condition_variable queue_cv_;
+        // std::atomic<bool> running_;
+        // std::thread worker_thread_;
     };
 }
 

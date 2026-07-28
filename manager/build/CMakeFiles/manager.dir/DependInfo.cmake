@@ -8,8 +8,9 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/home/lz/lz_ws/perf_monitor/manager/src/host_manager.cpp" "CMakeFiles/manager.dir/src/host_manager.cpp.o" "gcc" "CMakeFiles/manager.dir/src/host_manager.cpp.o.d"
+  "/home/lz/lz_ws/perf_monitor/manager/src/main.cpp" "CMakeFiles/manager.dir/src/main.cpp.o" "gcc" "CMakeFiles/manager.dir/src/main.cpp.o.d"
   "/home/lz/lz_ws/perf_monitor/manager/src/rpc/grpc_server.cpp" "CMakeFiles/manager.dir/src/rpc/grpc_server.cpp.o" "gcc" "CMakeFiles/manager.dir/src/rpc/grpc_server.cpp.o.d"
-  "/home/lz/lz_ws/perf_monitor/manager/src/simple_manager.cpp" "CMakeFiles/manager.dir/src/simple_manager.cpp.o" "gcc" "CMakeFiles/manager.dir/src/simple_manager.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

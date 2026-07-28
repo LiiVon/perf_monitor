@@ -69,24 +69,38 @@ include CMakeFiles/manager.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/manager.dir/flags.make
 
-CMakeFiles/manager.dir/src/simple_manager.cpp.o: CMakeFiles/manager.dir/flags.make
-CMakeFiles/manager.dir/src/simple_manager.cpp.o: /home/lz/lz_ws/perf_monitor/manager/src/simple_manager.cpp
-CMakeFiles/manager.dir/src/simple_manager.cpp.o: CMakeFiles/manager.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/lz/lz_ws/perf_monitor/manager/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/manager.dir/src/simple_manager.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/manager.dir/src/simple_manager.cpp.o -MF CMakeFiles/manager.dir/src/simple_manager.cpp.o.d -o CMakeFiles/manager.dir/src/simple_manager.cpp.o -c /home/lz/lz_ws/perf_monitor/manager/src/simple_manager.cpp
+CMakeFiles/manager.dir/src/main.cpp.o: CMakeFiles/manager.dir/flags.make
+CMakeFiles/manager.dir/src/main.cpp.o: /home/lz/lz_ws/perf_monitor/manager/src/main.cpp
+CMakeFiles/manager.dir/src/main.cpp.o: CMakeFiles/manager.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/lz/lz_ws/perf_monitor/manager/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/manager.dir/src/main.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/manager.dir/src/main.cpp.o -MF CMakeFiles/manager.dir/src/main.cpp.o.d -o CMakeFiles/manager.dir/src/main.cpp.o -c /home/lz/lz_ws/perf_monitor/manager/src/main.cpp
 
-CMakeFiles/manager.dir/src/simple_manager.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/manager.dir/src/simple_manager.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/lz/lz_ws/perf_monitor/manager/src/simple_manager.cpp > CMakeFiles/manager.dir/src/simple_manager.cpp.i
+CMakeFiles/manager.dir/src/main.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/manager.dir/src/main.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/lz/lz_ws/perf_monitor/manager/src/main.cpp > CMakeFiles/manager.dir/src/main.cpp.i
 
-CMakeFiles/manager.dir/src/simple_manager.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/manager.dir/src/simple_manager.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/lz/lz_ws/perf_monitor/manager/src/simple_manager.cpp -o CMakeFiles/manager.dir/src/simple_manager.cpp.s
+CMakeFiles/manager.dir/src/main.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/manager.dir/src/main.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/lz/lz_ws/perf_monitor/manager/src/main.cpp -o CMakeFiles/manager.dir/src/main.cpp.s
+
+CMakeFiles/manager.dir/src/host_manager.cpp.o: CMakeFiles/manager.dir/flags.make
+CMakeFiles/manager.dir/src/host_manager.cpp.o: /home/lz/lz_ws/perf_monitor/manager/src/host_manager.cpp
+CMakeFiles/manager.dir/src/host_manager.cpp.o: CMakeFiles/manager.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/lz/lz_ws/perf_monitor/manager/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/manager.dir/src/host_manager.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/manager.dir/src/host_manager.cpp.o -MF CMakeFiles/manager.dir/src/host_manager.cpp.o.d -o CMakeFiles/manager.dir/src/host_manager.cpp.o -c /home/lz/lz_ws/perf_monitor/manager/src/host_manager.cpp
+
+CMakeFiles/manager.dir/src/host_manager.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/manager.dir/src/host_manager.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/lz/lz_ws/perf_monitor/manager/src/host_manager.cpp > CMakeFiles/manager.dir/src/host_manager.cpp.i
+
+CMakeFiles/manager.dir/src/host_manager.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/manager.dir/src/host_manager.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/lz/lz_ws/perf_monitor/manager/src/host_manager.cpp -o CMakeFiles/manager.dir/src/host_manager.cpp.s
 
 CMakeFiles/manager.dir/src/rpc/grpc_server.cpp.o: CMakeFiles/manager.dir/flags.make
 CMakeFiles/manager.dir/src/rpc/grpc_server.cpp.o: /home/lz/lz_ws/perf_monitor/manager/src/rpc/grpc_server.cpp
 CMakeFiles/manager.dir/src/rpc/grpc_server.cpp.o: CMakeFiles/manager.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/lz/lz_ws/perf_monitor/manager/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/manager.dir/src/rpc/grpc_server.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/lz/lz_ws/perf_monitor/manager/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/manager.dir/src/rpc/grpc_server.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/manager.dir/src/rpc/grpc_server.cpp.o -MF CMakeFiles/manager.dir/src/rpc/grpc_server.cpp.o.d -o CMakeFiles/manager.dir/src/rpc/grpc_server.cpp.o -c /home/lz/lz_ws/perf_monitor/manager/src/rpc/grpc_server.cpp
 
 CMakeFiles/manager.dir/src/rpc/grpc_server.cpp.i: cmake_force
@@ -99,13 +113,15 @@ CMakeFiles/manager.dir/src/rpc/grpc_server.cpp.s: cmake_force
 
 # Object files for target manager
 manager_OBJECTS = \
-"CMakeFiles/manager.dir/src/simple_manager.cpp.o" \
+"CMakeFiles/manager.dir/src/main.cpp.o" \
+"CMakeFiles/manager.dir/src/host_manager.cpp.o" \
 "CMakeFiles/manager.dir/src/rpc/grpc_server.cpp.o"
 
 # External object files for target manager
 manager_EXTERNAL_OBJECTS =
 
-manager: CMakeFiles/manager.dir/src/simple_manager.cpp.o
+manager: CMakeFiles/manager.dir/src/main.cpp.o
+manager: CMakeFiles/manager.dir/src/host_manager.cpp.o
 manager: CMakeFiles/manager.dir/src/rpc/grpc_server.cpp.o
 manager: CMakeFiles/manager.dir/build.make
 manager: /usr/lib/x86_64-linux-gnu/libgrpc++.so.1.51.1
@@ -164,7 +180,7 @@ manager: /usr/lib/x86_64-linux-gnu/libabsl_time_zone.so.20220623.0.0
 manager: /usr/lib/x86_64-linux-gnu/libssl.so
 manager: /usr/lib/x86_64-linux-gnu/libcrypto.so
 manager: CMakeFiles/manager.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/lz/lz_ws/perf_monitor/manager/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable manager"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/lz/lz_ws/perf_monitor/manager/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable manager"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/manager.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

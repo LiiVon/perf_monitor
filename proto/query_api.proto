@@ -126,7 +126,7 @@ message PerformanceRecord
   float system_percent_rate    = 72;
   float io_wait_percent_rate   = 73;
   float load_avg_1_rate        = 74;
-  float load_avg_3_rate        = 75;
+  float load_avg_5_rate        = 75;
   float load_avg_15_rate       = 76;
   float mem_used_percent_rate  = 77;
   float disk_util_percent_rate = 78;
