@@ -19,6 +19,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/worker.dir/src/monitor/net_monitor.cpp.o.d"
   "CMakeFiles/worker.dir/src/monitor/user_monitor.cpp.o"
   "CMakeFiles/worker.dir/src/monitor/user_monitor.cpp.o.d"
+  "CMakeFiles/worker.dir/src/rpc/monitor_pusher.cpp.o"
+  "CMakeFiles/worker.dir/src/rpc/monitor_pusher.cpp.o.d"
   "CMakeFiles/worker.dir/src/utils/read_file.cpp.o"
   "CMakeFiles/worker.dir/src/utils/read_file.cpp.o.d"
   "worker"

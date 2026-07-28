@@ -74,7 +74,7 @@ set(WORKER_SOURCES
     src/monitor/host_info_monitor.cpp
     src/monitor/user_monitor.cpp
     src/monitor/net_monitor.cpp
-    # src/rpc/monitor_pusher.cpp
+    src/rpc/monitor_pusher.cpp
     src/utils/read_file.cpp
 )
 

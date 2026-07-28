@@ -1,6 +1,8 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/manager.dir/src/main.cpp.o"
-  "CMakeFiles/manager.dir/src/main.cpp.o.d"
+  "CMakeFiles/manager.dir/src/rpc/grpc_server.cpp.o"
+  "CMakeFiles/manager.dir/src/rpc/grpc_server.cpp.o.d"
+  "CMakeFiles/manager.dir/src/simple_manager.cpp.o"
+  "CMakeFiles/manager.dir/src/simple_manager.cpp.o.d"
   "manager"
   "manager.pdb"
 )

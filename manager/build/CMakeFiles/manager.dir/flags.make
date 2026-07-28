@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/lz/lz_ws/perf_monitor/manager/../proto/build
+CXX_INCLUDES = -I/home/lz/lz_ws/perf_monitor/manager/../proto/build -I/home/lz/lz_ws/perf_monitor/manager/include
 
 CXX_FLAGS = -std=gnu++17 -pthread
 

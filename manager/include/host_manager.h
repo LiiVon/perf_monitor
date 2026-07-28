@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <vector>
 
+// 处理 GrpcServerImpl 转交过来的数据。计算主机评分（CalcScore），启动后台线程处理数据，并负责写入 MySQL。
 namespace monitor
 {
     // HostScore 结构体用于存储主机的监控信息、评分和时间戳

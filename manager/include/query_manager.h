@@ -1,0 +1,1 @@
+// 封装所有 MySQL 查询逻辑（时间段查询、异常查询、趋势查询等）。被 QueryServiceImpl 调用。

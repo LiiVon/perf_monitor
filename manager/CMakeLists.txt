@@ -56,7 +56,14 @@ set(PROTO_BUILD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../proto/build)
 link_directories(${PROTO_BUILD_DIR})
 include_directories(${PROTO_BUILD_DIR})
 
-add_executable(manager src/main.cpp)
+set(MANAGER_SOURCES
+    src/simple_manager.cpp
+    # src/host_manager.cpp
+    # src/query_manager.cpp
+    src/rpc/grpc_server.cpp
+    # src/rpc/query_service.cpp
+)
+add_executable(manager ${MANAGER_SOURCES})
 
 target_link_libraries(manager
     monitor_proto
@@ -68,4 +75,8 @@ target_link_libraries(manager
 )
 
 # 添加头文件路径（proto 生成的头文件）
-target_include_directories(manager PRIVATE ${PROTO_BUILD_DIR})
+
+target_include_directories(manager PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include   # 这是 Manager 自己的头文件
+    ${PROTO_BUILD_DIR}                    # 这是 proto 生成的头文件
+)

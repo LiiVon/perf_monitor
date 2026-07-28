@@ -81,12 +81,12 @@ clean: CMakeFiles/manager.dir/clean
 CMakeFiles/manager.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/manager.dir/build.make CMakeFiles/manager.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/manager.dir/build.make CMakeFiles/manager.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/lz/lz_ws/perf_monitor/manager/build/CMakeFiles --progress-num=1,2 "Built target manager"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/lz/lz_ws/perf_monitor/manager/build/CMakeFiles --progress-num=1,2,3 "Built target manager"
 .PHONY : CMakeFiles/manager.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/manager.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/lz/lz_ws/perf_monitor/manager/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/lz/lz_ws/perf_monitor/manager/build/CMakeFiles 3
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/manager.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/lz/lz_ws/perf_monitor/manager/build/CMakeFiles 0
 .PHONY : CMakeFiles/manager.dir/rule

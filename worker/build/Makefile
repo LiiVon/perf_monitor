@@ -369,6 +369,30 @@ src/monitor/user_monitor.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/monitor/user_monitor.cpp.s
 .PHONY : src/monitor/user_monitor.cpp.s
 
+src/rpc/monitor_pusher.o: src/rpc/monitor_pusher.cpp.o
+.PHONY : src/rpc/monitor_pusher.o
+
+# target to build an object file
+src/rpc/monitor_pusher.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/rpc/monitor_pusher.cpp.o
+.PHONY : src/rpc/monitor_pusher.cpp.o
+
+src/rpc/monitor_pusher.i: src/rpc/monitor_pusher.cpp.i
+.PHONY : src/rpc/monitor_pusher.i
+
+# target to preprocess a source file
+src/rpc/monitor_pusher.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/rpc/monitor_pusher.cpp.i
+.PHONY : src/rpc/monitor_pusher.cpp.i
+
+src/rpc/monitor_pusher.s: src/rpc/monitor_pusher.cpp.s
+.PHONY : src/rpc/monitor_pusher.s
+
+# target to generate assembly for a file
+src/rpc/monitor_pusher.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/worker.dir/build.make CMakeFiles/worker.dir/src/rpc/monitor_pusher.cpp.s
+.PHONY : src/rpc/monitor_pusher.cpp.s
+
 src/utils/read_file.o: src/utils/read_file.cpp.o
 .PHONY : src/utils/read_file.o
 
@@ -432,6 +456,9 @@ help:
 	@echo "... src/monitor/user_monitor.o"
 	@echo "... src/monitor/user_monitor.i"
 	@echo "... src/monitor/user_monitor.s"
+	@echo "... src/rpc/monitor_pusher.o"
+	@echo "... src/rpc/monitor_pusher.i"
+	@echo "... src/rpc/monitor_pusher.s"
 	@echo "... src/utils/read_file.o"
 	@echo "... src/utils/read_file.i"
 	@echo "... src/utils/read_file.s"

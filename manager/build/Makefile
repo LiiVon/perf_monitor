@@ -129,29 +129,53 @@ manager/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/manager.dir/build.make CMakeFiles/manager.dir/build
 .PHONY : manager/fast
 
-src/main.o: src/main.cpp.o
-.PHONY : src/main.o
+src/rpc/grpc_server.o: src/rpc/grpc_server.cpp.o
+.PHONY : src/rpc/grpc_server.o
 
 # target to build an object file
-src/main.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/manager.dir/build.make CMakeFiles/manager.dir/src/main.cpp.o
-.PHONY : src/main.cpp.o
+src/rpc/grpc_server.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/manager.dir/build.make CMakeFiles/manager.dir/src/rpc/grpc_server.cpp.o
+.PHONY : src/rpc/grpc_server.cpp.o
 
-src/main.i: src/main.cpp.i
-.PHONY : src/main.i
+src/rpc/grpc_server.i: src/rpc/grpc_server.cpp.i
+.PHONY : src/rpc/grpc_server.i
 
 # target to preprocess a source file
-src/main.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/manager.dir/build.make CMakeFiles/manager.dir/src/main.cpp.i
-.PHONY : src/main.cpp.i
+src/rpc/grpc_server.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/manager.dir/build.make CMakeFiles/manager.dir/src/rpc/grpc_server.cpp.i
+.PHONY : src/rpc/grpc_server.cpp.i
 
-src/main.s: src/main.cpp.s
-.PHONY : src/main.s
+src/rpc/grpc_server.s: src/rpc/grpc_server.cpp.s
+.PHONY : src/rpc/grpc_server.s
 
 # target to generate assembly for a file
-src/main.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/manager.dir/build.make CMakeFiles/manager.dir/src/main.cpp.s
-.PHONY : src/main.cpp.s
+src/rpc/grpc_server.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/manager.dir/build.make CMakeFiles/manager.dir/src/rpc/grpc_server.cpp.s
+.PHONY : src/rpc/grpc_server.cpp.s
+
+src/simple_manager.o: src/simple_manager.cpp.o
+.PHONY : src/simple_manager.o
+
+# target to build an object file
+src/simple_manager.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/manager.dir/build.make CMakeFiles/manager.dir/src/simple_manager.cpp.o
+.PHONY : src/simple_manager.cpp.o
+
+src/simple_manager.i: src/simple_manager.cpp.i
+.PHONY : src/simple_manager.i
+
+# target to preprocess a source file
+src/simple_manager.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/manager.dir/build.make CMakeFiles/manager.dir/src/simple_manager.cpp.i
+.PHONY : src/simple_manager.cpp.i
+
+src/simple_manager.s: src/simple_manager.cpp.s
+.PHONY : src/simple_manager.s
+
+# target to generate assembly for a file
+src/simple_manager.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/manager.dir/build.make CMakeFiles/manager.dir/src/simple_manager.cpp.s
+.PHONY : src/simple_manager.cpp.s
 
 # Help Target
 help:
@@ -162,9 +186,12 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... manager"
-	@echo "... src/main.o"
-	@echo "... src/main.i"
-	@echo "... src/main.s"
+	@echo "... src/rpc/grpc_server.o"
+	@echo "... src/rpc/grpc_server.i"
+	@echo "... src/rpc/grpc_server.s"
+	@echo "... src/simple_manager.o"
+	@echo "... src/simple_manager.i"
+	@echo "... src/simple_manager.s"
 .PHONY : help
 
 
