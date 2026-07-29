@@ -60,10 +60,13 @@ namespace monitor
         if (!monitor_info)
             return;
 
-        monitor_info->set_name(hostname_);
+        // 1. 先让所有监控器填充数据
         for (auto &monitor : monitors_)
         {
             monitor->UpdateOnce(monitor_info);
         }
+
+        // 2. 最后强制设置主机名（覆盖 UserMonitor 可能的修改）
+        monitor_info->set_name(hostname_);
     }
 }

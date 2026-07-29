@@ -57,10 +57,10 @@ namespace monitor
         if (!monitor_info)
             return;
 
-        monitor_info->set_name(hostname_);
         for (auto &monitor : monitors_)
         {
             monitor->UpdateOnce(monitor_info);
         }
+        monitor_info->set_name(hostname_);
     }
 }

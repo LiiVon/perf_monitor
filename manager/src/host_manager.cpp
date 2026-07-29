@@ -91,6 +91,13 @@ namespace monitor
 
     std::string HostManager::ExtractHostName(const monitor::proto::MonitorInfo &info)
     {
+        // 【优先】使用顶层 name 字段（由 MetricCollector 设置）
+        if (!info.name().empty())
+        {
+            return info.name();
+        }
+
+        // 【回退】使用 host_info
         std::string host_name;
         if (info.has_host_info())
         {
@@ -105,7 +112,7 @@ namespace monitor
                 host_name = ip;
         }
         if (host_name.empty())
-            host_name = info.name();
+            host_name = "unknown";
         return host_name;
     }
 

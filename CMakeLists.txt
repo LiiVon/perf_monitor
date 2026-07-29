@@ -44,6 +44,21 @@ if(BUILD_MANAGER)
     add_subdirectory(manager)
 endif()
 
+# ===== Qt 前端（可选，默认不编译） =====
+option(BUILD_QT_UI "Build Qt UI frontend" OFF)
+
+if(BUILD_QT_UI)
+    # 检查是否存在 monitor_UI 目录
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/monitor_UI/CMakeLists.txt)
+        add_subdirectory(monitor_UI)
+        message(STATUS "Qt UI frontend enabled")
+    else()
+        message(WARNING "monitor_UI directory not found, skipping Qt UI")
+    endif()
+else()
+    message(STATUS "Qt UI frontend disabled (set BUILD_QT_UI=ON to enable)")
+endif()
+
 # ===== 打印构建摘要 =====
 message(STATUS "========================================")
 message(STATUS "monitor_system build configuration:")

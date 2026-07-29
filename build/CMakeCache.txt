@@ -17,6 +17,9 @@
 //Build manager server (requires MySQL)
 BUILD_MANAGER:BOOL=ON
 
+//Build Qt UI frontend
+BUILD_QT_UI:BOOL=OFF
+
 //Path to a program.
 CMAKE_ADDR2LINE:FILEPATH=/usr/bin/addr2line
 
