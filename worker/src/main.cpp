@@ -132,8 +132,8 @@ int main(int argc, char *argv[])
     signal(SIGINT, SignalHandler);
     signal(SIGTERM, SignalHandler);
 
-    // 创建 MonitorPusher 实例
-    monitor::MonitorPusher pusher(manager_addr);
+    // 创建 MonitorPusher 实例 默认刷新间隔为10秒,这里修改5s
+    monitor::MonitorPusher pusher(manager_addr,5);
     pusher.Start();
 
     // 主循环
