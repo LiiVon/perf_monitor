@@ -18,7 +18,7 @@ namespace monitor
 {
 
     // gRPC 查询服务实现类
-    class QueryServiceImpl : public monitor::proto::QueryService::Service
+    class  QueryServiceImpl : public monitor::proto::QueryService::Service
     {
     public:
         explicit QueryServiceImpl(QueryManager *query_manager);
