@@ -21,7 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     setupUI();
-    setupDarkTheme();
+    setupLightTheme();
 
     networkManager = new QNetworkAccessManager(this);
     connect(networkManager, &QNetworkAccessManager::finished,
@@ -43,7 +43,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::setupUI()
 {
-    setWindowTitle("🔥 系统性能监控看板");
+    setWindowTitle("系统性能监控看板");
     resize(1200, 750);
 
     QWidget *central = new QWidget(this);
@@ -65,7 +65,7 @@ void MainWindow::setupUI()
     connect(hostSelector, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &MainWindow::onHostSelected);
 
-    refreshBtn = new QPushButton("🔄 手动刷新", this);
+    refreshBtn = new QPushButton("刷新", this);
     refreshBtn->setObjectName("refreshBtn");
 
     topLayout->addWidget(statusLabel);
@@ -85,11 +85,11 @@ void MainWindow::setupUI()
 
     // 卡片区域
     QHBoxLayout *cardLayout = new QHBoxLayout();
-    scoreLabel = new QLabel("🏆 评分: --", this);
-    load1Label = new QLabel("📈 1min负载: --", this);
-    load5Label = new QLabel("📊 5min负载: --", this);
-    load15Label = new QLabel("📉 15min负载: --", this);
-    memLabel = new QLabel("🧠 内存使用率: --", this);
+    scoreLabel = new QLabel("评分: --", this);
+    load1Label = new QLabel("1min负载: --", this);
+    load5Label = new QLabel("5min负载: --", this);
+    load15Label = new QLabel("15min负载: --", this);
+    memLabel = new QLabel("内存使用率: --", this);
 
     for (auto lbl : {scoreLabel, load1Label, load5Label, load15Label, memLabel}) {
         lbl->setProperty("class", "cardLabel");
@@ -123,273 +123,243 @@ void MainWindow::setupUI()
     diskChartView->setMinimumHeight(160);
     overviewLayout->addWidget(diskChartView);
 
-    tabWidget->addTab(overviewTab, "📊 概览");
+    tabWidget->addTab(overviewTab, "概览");
 
     // ========== 其他 Tab ==========
     cpuTable = new QTableWidget(this);
     cpuTable->setAlternatingRowColors(true);
     cpuTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    tabWidget->addTab(cpuTable, "💻 CPU");
+    tabWidget->addTab(cpuTable, "CPU");
 
     memTable = new QTableWidget(this);
     memTable->setAlternatingRowColors(true);
     memTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    tabWidget->addTab(memTable, "🧠 内存");
+    tabWidget->addTab(memTable, "内存");
 
     netTable = new QTableWidget(this);
     netTable->setAlternatingRowColors(true);
     netTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    tabWidget->addTab(netTable, "🌐 网络");
+    tabWidget->addTab(netTable, "网络");
 
     diskTable = new QTableWidget(this);
     diskTable->setAlternatingRowColors(true);
     diskTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    tabWidget->addTab(diskTable, "💾 磁盘");
+    tabWidget->addTab(diskTable, "磁盘");
 
     softIrqTable = new QTableWidget(this);
     softIrqTable->setAlternatingRowColors(true);
     softIrqTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    tabWidget->addTab(softIrqTable, "⚡ 软中断");
+    tabWidget->addTab(softIrqTable, "软中断");
 
     mainLayout->addWidget(tabWidget);
     setCentralWidget(central);
 }
 
-void MainWindow::setupDarkTheme()
+// ============================================================
+// 白色主题（浅色风格）
+// ============================================================
+void MainWindow::setupLightTheme()
 {
-    QString techStyle = R"(
-        /* ===== 全局背景 ===== */
+    QString lightStyle = R"(
+        /* 全局背景 */
         QMainWindow, QWidget {
-            background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                        stop:0 #0a0e1a, stop:1 #111827);
-            color: #c8e6f0;
+            background-color: #f5f7fa;
+            color: #2c3e50;
             font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
         }
 
-        /* ===== 顶部状态栏 ===== */
+        /* 顶部状态栏 */
         QLabel#statusLabel {
-            color: #7ec8e3;
+            background: transparent;
+            color: #2c3e50;
             font-size: 14px;
             padding: 4px 12px;
-            border: 1px solid rgba(100, 200, 255, 0.12);
-            border-radius: 4px;
-            background: rgba(20, 40, 70, 0.5);
         }
         QPushButton#refreshBtn {
             background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                        stop:0 #1a4a6a, stop:1 #0d2a4a);
-            color: #7ec8e3;
-            border: 1px solid #2a6a8a;
+                                        stop:0 #1abc9c, stop:1 #16a085);
+            color: white;
+            border: none;
             border-radius: 4px;
             padding: 6px 18px;
             font-weight: bold;
         }
         QPushButton#refreshBtn:hover {
             background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                        stop:0 #2a6a8a, stop:1 #1a4a6a);
-            border-color: #4a9aca;
+                                        stop:0 #16a085, stop:1 #1abc9c);
         }
 
-        /* ===== TabWidget 暗黑风格 ===== */
+        /* TabWidget */
         QTabWidget::pane {
-            border: 1px solid rgba(60, 160, 220, 0.15);
-            border-radius: 6px;
-            background: rgba(10, 14, 26, 0.8);
+            background: transparent;
+            border: none;
         }
         QTabBar::tab {
-            background: rgba(20, 40, 70, 0.4);
-            color: #6a9aba;
+            background: transparent;
+            color: #7f8c8d;
             padding: 10px 24px;
             margin-right: 2px;
-            border: 1px solid rgba(60, 160, 220, 0.1);
-            border-bottom: none;
-            border-top-left-radius: 6px;
-            border-top-right-radius: 6px;
+            border: none;
+            border-bottom: 3px solid transparent;
             font-weight: bold;
             font-size: 13px;
         }
         QTabBar::tab:selected {
-            background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                        stop:0 #1a4a6a, stop:1 #0d2a4a);
-            color: #7ec8e3;
-            border-color: rgba(60, 160, 220, 0.3);
+            color: #2c3e50;
+            border-bottom: 3px solid #2986d8;
         }
         QTabBar::tab:hover:!selected {
-            background: rgba(30, 60, 90, 0.5);
-            color: #8ad8f0;
+            color: #34495e;
+            border-bottom: 3px solid #bdc3c7;
         }
 
-        /* ===== 表格 ===== */
+        /* 表格 */
         QTableWidget {
-            background: rgba(8, 12, 24, 0.7);
-            alternate-background-color: rgba(20, 40, 70, 0.3);
-            gridline-color: rgba(60, 160, 220, 0.1);
-            color: #b0d8e8;
+            background-color: white;
+            alternate-background-color: #f8f9fa;
+            gridline-color: #e8ecf1;
+            color: #2c3e50;
             border: none;
             font-size: 13px;
+            border-radius: 8px;
         }
         QHeaderView::section {
-            background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                        stop:0 #1a2a3a, stop:1 #0d1a2a);
-            color: #7ec8e3;
+            background-color: #ecf0f1;
+            color: #2c3e50;
             padding: 8px 12px;
-            border: 1px solid rgba(60, 160, 220, 0.15);
+            border: none;
             font-weight: bold;
-            font-size: 13px;
-        }
-        QTableWidget::item {
-            padding: 6px 8px;
         }
         QTableWidget::item:selected {
-            background: rgba(60, 160, 220, 0.25);
-            color: #ffffff;
+            background: #2986d8;
+            color: white;
         }
 
-        /* ===== 卡片标签 ===== */
+        /* 卡片标签 */
         QLabel[class="cardLabel"] {
-            background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                        stop:0 rgba(20, 40, 80, 0.5),
-                                        stop:1 rgba(10, 20, 40, 0.5));
-            border: 1px solid rgba(60, 160, 220, 0.2);
+            background-color: white;
+            border: 1px solid #e8ecf1;
             border-radius: 8px;
             padding: 16px 20px;
             font-weight: bold;
             font-size: 16px;
-            color: #7ec8e3;
+            color: #2c3e50;
         }
         QLabel[class="cardLabel"]:hover {
-            border-color: rgba(60, 160, 220, 0.4);
-            background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                        stop:0 rgba(30, 60, 110, 0.6),
-                                        stop:1 rgba(15, 30, 60, 0.6));
+            background-color: #eef2f7;
         }
 
-        /* ===== 图表容器 ===== */
+        /* 图表容器 */
         QChartView {
-            background: rgba(8, 12, 24, 0.5);
-            border: 1px solid rgba(60, 160, 220, 0.12);
-            border-radius: 6px;
+            background: white;
+            border: 1px solid #e8ecf1;
+            border-radius: 8px;
+            padding: 4px;
         }
 
-        /* ===== 滚动条 ===== */
+        /* 滚动条 */
         QScrollBar:vertical {
-            background: rgba(8, 12, 24, 0.6);
-            width: 10px;
-            border-radius: 5px;
+            background: #ecf0f1;
+            width: 8px;
+            border-radius: 4px;
         }
         QScrollBar::handle:vertical {
-            background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                        stop:0 #1a3a5a, stop:1 #0d2a3a);
-            border-radius: 5px;
+            background: #bdc3c7;
+            border-radius: 4px;
             min-height: 30px;
         }
         QScrollBar::handle:vertical:hover {
-            background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                        stop:0 #2a5a7a, stop:1 #1a3a5a);
+            background: #95a5a6;
         }
         QScrollBar:horizontal {
-            background: rgba(8, 12, 24, 0.6);
-            height: 10px;
-            border-radius: 5px;
+            background: #ecf0f1;
+            height: 8px;
+            border-radius: 4px;
         }
         QScrollBar::handle:horizontal {
-            background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                                        stop:0 #1a3a5a, stop:1 #0d2a3a);
-            border-radius: 5px;
+            background: #bdc3c7;
+            border-radius: 4px;
             min-width: 30px;
         }
         QScrollBar::handle:horizontal:hover {
-            background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                                        stop:0 #2a5a7a, stop:1 #1a3a5a);
+            background: #95a5a6;
         }
 
-        /* ===== 下拉框/输入框 ===== */
-        QComboBox, QLineEdit {
-            background: rgba(8, 12, 24, 0.7);
-            color: #b0d8e8;
-            border: 1px solid rgba(60, 160, 220, 0.15);
+        /* 下拉框 */
+        QComboBox {
+            background: white;
+            border: 1px solid #dcdfe6;
             border-radius: 4px;
             padding: 5px 10px;
+            color: #2c3e50;
         }
-        QComboBox:hover, QLineEdit:hover {
-            border-color: rgba(60, 160, 220, 0.3);
+        QComboBox:hover {
+            border-color: #2986d8;
         }
         QComboBox::drop-down {
             border: none;
-            background: transparent;
         }
         QComboBox::down-arrow {
             image: none;
             border-left: 5px solid transparent;
             border-right: 5px solid transparent;
-            border-top: 5px solid #3a7a9a;
+            border-top: 5px solid #7f8c8d;
             margin-right: 8px;
         }
+        QComboBox QAbstractItemView {
+            background: white;
+            color: #2c3e50;
+            selection-background-color: #2986d8;
+            selection-color: white;
+        }
 
-        /* ===== 进度条 ===== */
+        /* 进度条（备用） */
         QProgressBar {
-            background: rgba(8, 12, 24, 0.7);
-            border: 1px solid rgba(60, 160, 220, 0.15);
+            background: #ecf0f1;
+            border: none;
             border-radius: 4px;
             text-align: center;
-            color: #b0d8e8;
+            color: #2c3e50;
         }
         QProgressBar::chunk {
             background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                                        stop:0 #1a4a6a, stop:1 #2a7a9a);
+                                        stop:0 #1abc9c, stop:1 #2986d8);
             border-radius: 4px;
         }
 
-        /* ===== 菜单栏 ===== */
-        QMenuBar {
-            background: rgba(8, 12, 24, 0.8);
-            color: #7ec8e3;
-            border-bottom: 1px solid rgba(60, 160, 220, 0.1);
-        }
-        QMenuBar::item:selected {
-            background: rgba(30, 60, 90, 0.5);
-        }
-        QMenu {
-            background: rgba(8, 12, 24, 0.95);
-            color: #b0d8e8;
-            border: 1px solid rgba(60, 160, 220, 0.15);
-        }
-        QMenu::item:selected {
-            background: rgba(30, 60, 90, 0.5);
-        }
-
-        /* ===== 状态栏 ===== */
+        /* 状态栏 */
         QStatusBar {
-            background: rgba(8, 12, 24, 0.8);
-            color: #5a8a9a;
-            border-top: 1px solid rgba(60, 160, 220, 0.08);
+            background: #f5f7fa;
+            color: #7f8c8d;
+            border-top: 1px solid #e8ecf1;
         }
 
+        /* 特定控件 */
+        QLabel#hostCountLabel {
+            color: #2986d8;
+            font-weight: bold;
+        }
         QComboBox#hostSelector {
-            background: rgba(20, 40, 70, 0.6);
-            border: 1px solid rgba(60, 160, 220, 0.2);
+            background: white;
+            border: 1px solid #dcdfe6;
             border-radius: 4px;
             padding: 4px 10px;
-            color: #7ec8e3;
+            color: #2c3e50;
         }
         QComboBox#hostSelector:hover {
-            border-color: rgba(60, 160, 220, 0.4);
+            border-color: #2986d8;
         }
         QComboBox#hostSelector::drop-down {
             border: none;
         }
         QComboBox#hostSelector QAbstractItemView {
-            background: #1a2a3a;
-            color: #b0d8e8;
-            selection-background-color: #2a5a7a;
-        }
-        QLabel#hostCountLabel {
-            color: #4ae0a0;
-            font-weight: bold;
+            background: white;
+            color: #2c3e50;
+            selection-background-color: #2986d8;
+            selection-color: white;
         }
     )";
-
-    setStyleSheet(techStyle);
+    setStyleSheet(lightStyle);
 }
 
 void MainWindow::appendData(const QJsonObject &obj)
@@ -442,20 +412,18 @@ void MainWindow::updateCharts()
     // ---- CPU 图表 ----
     {
         QLineSeries *cpuSeries = new QLineSeries();
-        cpuSeries->setName("CPU 使用率 (%)");
-        cpuSeries->setColor(QColor("#4ac0e0"));
+        cpuSeries->setName("CPU使用率 (%)");
+        cpuSeries->setColor(QColor("#2986d8"));  // 蓝色
         for (int i = 0; i < history.size(); ++i) {
             cpuSeries->append(i, history[i].cpuPercent);
         }
         QChart *cpuChart = new QChart();
         cpuChart->addSeries(cpuSeries);
-        cpuChart->setTitle("CPU 使用率趋势");
-        cpuChart->setTheme(QChart::ChartThemeDark);
+        cpuChart->setTitle("CPU使用率趋势");
+        cpuChart->setTheme(QChart::ChartThemeLight);  // 浅色主题
         cpuChart->createDefaultAxes();
-        if (!cpuChart->axes(Qt::Horizontal).isEmpty())
-            cpuChart->axes(Qt::Horizontal).first()->setRange(0, MAX_HISTORY);
-        if (!cpuChart->axes(Qt::Vertical).isEmpty())
-            cpuChart->axes(Qt::Vertical).first()->setRange(0, 100);
+        cpuChart->axisX()->setRange(0, MAX_HISTORY);
+        cpuChart->axisY()->setRange(0, 100);
         cpuChart->legend()->setVisible(true);
         cpuChartView->setChart(cpuChart);
     }
@@ -464,19 +432,17 @@ void MainWindow::updateCharts()
     {
         QLineSeries *memSeries = new QLineSeries();
         memSeries->setName("内存使用率 (%)");
-        memSeries->setColor(QColor("#fdb14a"));
+        memSeries->setColor(QColor("#e67e22"));  // 橙色
         for (int i = 0; i < history.size(); ++i) {
             memSeries->append(i, history[i].memUsedPercent);
         }
         QChart *memChart = new QChart();
         memChart->addSeries(memSeries);
         memChart->setTitle("内存使用率趋势");
-        memChart->setTheme(QChart::ChartThemeDark);
+        memChart->setTheme(QChart::ChartThemeLight);
         memChart->createDefaultAxes();
-        if (!memChart->axes(Qt::Horizontal).isEmpty())
-            memChart->axes(Qt::Horizontal).first()->setRange(0, MAX_HISTORY);
-        if (!memChart->axes(Qt::Vertical).isEmpty())
-            memChart->axes(Qt::Vertical).first()->setRange(0, 100);
+        memChart->axisX()->setRange(0, MAX_HISTORY);
+        memChart->axisY()->setRange(0, 100);
         memChart->legend()->setVisible(true);
         memChartView->setChart(memChart);
     }
@@ -485,10 +451,10 @@ void MainWindow::updateCharts()
     {
         QLineSeries *inSeries = new QLineSeries();
         inSeries->setName("接收速率 (KB/s)");
-        inSeries->setColor(QColor("#4ae0a0"));
+        inSeries->setColor(QColor("#1abc9c"));  // 青绿
         QLineSeries *outSeries = new QLineSeries();
         outSeries->setName("发送速率 (KB/s)");
-        outSeries->setColor(QColor("#ff6b6b"));
+        outSeries->setColor(QColor("#2986d8"));  // 蓝色
         for (int i = 0; i < history.size(); ++i) {
             inSeries->append(i, history[i].netInRate);
             outSeries->append(i, history[i].netOutRate);
@@ -497,10 +463,9 @@ void MainWindow::updateCharts()
         netChart->addSeries(inSeries);
         netChart->addSeries(outSeries);
         netChart->setTitle("网络收发趋势");
-        netChart->setTheme(QChart::ChartThemeDark);
+        netChart->setTheme(QChart::ChartThemeLight);
         netChart->createDefaultAxes();
-        if (!netChart->axes(Qt::Horizontal).isEmpty())
-            netChart->axes(Qt::Horizontal).first()->setRange(0, MAX_HISTORY);
+        netChart->axisX()->setRange(0, MAX_HISTORY);
         netChart->legend()->setVisible(true);
         netChartView->setChart(netChart);
     }
@@ -509,19 +474,17 @@ void MainWindow::updateCharts()
     {
         QLineSeries *diskSeries = new QLineSeries();
         diskSeries->setName("磁盘利用率 (%)");
-        diskSeries->setColor(QColor("#f5a623"));
+        diskSeries->setColor(QColor("#f39c12"));  // 橙色
         for (int i = 0; i < history.size(); ++i) {
             diskSeries->append(i, history[i].diskUtil);
         }
         QChart *diskChart = new QChart();
         diskChart->addSeries(diskSeries);
         diskChart->setTitle("磁盘利用率趋势");
-        diskChart->setTheme(QChart::ChartThemeDark);
+        diskChart->setTheme(QChart::ChartThemeLight);
         diskChart->createDefaultAxes();
-        if (!diskChart->axes(Qt::Horizontal).isEmpty())
-            diskChart->axes(Qt::Horizontal).first()->setRange(0, MAX_HISTORY);
-        if (!diskChart->axes(Qt::Vertical).isEmpty())
-            diskChart->axes(Qt::Vertical).first()->setRange(0, 100);
+        diskChart->axisX()->setRange(0, MAX_HISTORY);
+        diskChart->axisY()->setRange(0, 100);
         diskChart->legend()->setVisible(true);
         diskChartView->setChart(diskChart);
     }
@@ -536,18 +499,19 @@ void MainWindow::updateOverview(const QJsonObject &obj)
     double load15 = loadObj["load_avg_15"].toDouble();
     double memUsed = obj["mem_info"].toObject()["used_percent"].toDouble();
 
-    scoreLabel->setText(QString("🏆 评分: %1").arg(score, 0, 'f', 1));
-    load1Label->setText(QString("📈 1min负载: %1").arg(load1, 0, 'f', 2));
-    load5Label->setText(QString("📊 5min负载: %1").arg(load5, 0, 'f', 2));
-    load15Label->setText(QString("📉 15min负载: %1").arg(load15, 0, 'f', 2));
-    memLabel->setText(QString("🧠 内存使用率: %1%").arg(memUsed, 0, 'f', 1));
+    scoreLabel->setText(QString("评分: %1").arg(score, 0, 'f', 1));
+    load1Label->setText(QString("1min负载: %1").arg(load1, 0, 'f', 2));
+    load5Label->setText(QString("5min负载: %1").arg(load5, 0, 'f', 2));
+    load15Label->setText(QString("15min负载: %1").arg(load15, 0, 'f', 2));
+    memLabel->setText(QString("内存使用率: %1%").arg(memUsed, 0, 'f', 1));
 
+    // 内存高亮颜色（浅色主题下用深色）
     if (memUsed > 90) {
-        memLabel->setStyleSheet("color: #ff6b6b;");
+        memLabel->setStyleSheet("color: #e74c3c;");
     } else if (memUsed > 70) {
-        memLabel->setStyleSheet("color: #fdb14a;");
+        memLabel->setStyleSheet("color: #f39c12;");
     } else {
-        memLabel->setStyleSheet("color: #4ae0a0;");
+        memLabel->setStyleSheet("color: #27ae60;");
     }
 }
 
@@ -561,6 +525,8 @@ void MainWindow::updateCpuTable(const QJsonArray &cpuStats)
 
     for (const auto &item : cpuStats) {
         QJsonObject obj = item.toObject();
+        QString cpuName = obj["cpu_name"].toString();
+        if (cpuName.isEmpty()) continue;   // 跳过空名称的条目
         int row = cpuTable->rowCount();
         cpuTable->insertRow(row);
         int col = 0;
@@ -665,9 +631,11 @@ void MainWindow::updateDiskTable(const QJsonArray &diskInfos)
 
 void MainWindow::updateSoftIrqTable(const QJsonArray &softIrqs)
 {
-    softIrqTable->setColumnCount(6);
+    // 设置 11 列：CPU + 10 种软中断
+    softIrqTable->setColumnCount(11);
     softIrqTable->setHorizontalHeaderLabels({
-        "CPU", "HI", "TIMER", "NET_TX", "NET_RX", "BLOCK"
+        "CPU", "HI", "TIMER", "NET_TX", "NET_RX", "BLOCK",
+        "IRQ_POLL", "TASKLET", "SCHED", "HRTIMER", "RCU"
     });
     softIrqTable->setRowCount(0);
 
@@ -682,12 +650,17 @@ void MainWindow::updateSoftIrqTable(const QJsonArray &softIrqs)
         softIrqTable->setItem(row, col++, new QTableWidgetItem(QString::number(obj["net_tx"].toDouble(), 'f', 0)));
         softIrqTable->setItem(row, col++, new QTableWidgetItem(QString::number(obj["net_rx"].toDouble(), 'f', 0)));
         softIrqTable->setItem(row, col++, new QTableWidgetItem(QString::number(obj["block"].toDouble(), 'f', 0)));
+        softIrqTable->setItem(row, col++, new QTableWidgetItem(QString::number(obj["irq_poll"].toDouble(), 'f', 0)));
+        softIrqTable->setItem(row, col++, new QTableWidgetItem(QString::number(obj["tasklet"].toDouble(), 'f', 0)));
+        softIrqTable->setItem(row, col++, new QTableWidgetItem(QString::number(obj["sched"].toDouble(), 'f', 0)));
+        softIrqTable->setItem(row, col++, new QTableWidgetItem(QString::number(obj["hrtimer"].toDouble(), 'f', 0)));
+        softIrqTable->setItem(row, col++, new QTableWidgetItem(QString::number(obj["rcu"].toDouble(), 'f', 0)));
     }
 }
 
 void MainWindow::fetchData()
 {
-    updateStatus("🔄 正在获取数据...");
+    updateStatus("正在获取数据...");
     QUrl url(API_URL);
     QNetworkRequest request(url);
     networkManager->get(request);
@@ -696,7 +669,7 @@ void MainWindow::fetchData()
 void MainWindow::onReplyFinished(QNetworkReply *reply)
 {
     if (reply->error() != QNetworkReply::NoError) {
-        updateStatus("❌ 网络错误: " + reply->errorString());
+        updateStatus("网络错误: " + reply->errorString());
         reply->deleteLater();
         return;
     }
@@ -706,13 +679,13 @@ void MainWindow::onReplyFinished(QNetworkReply *reply)
 
     QJsonDocument doc = QJsonDocument::fromJson(data);
     if (!doc.isArray()) {
-        updateStatus("❌ 数据格式错误");
+        updateStatus("数据格式错误");
         return;
     }
 
     latestArray = doc.array();
     if (latestArray.isEmpty()) {
-        updateStatus("📭 无数据: 等待 Worker 推送...");
+        updateStatus("无数据: 等待 Worker 推送...");
         hostCountLabel->setText("在线: 0");
         hostSelector->clear();
         return;
@@ -743,7 +716,7 @@ void MainWindow::onReplyFinished(QNetworkReply *reply)
 
     // 更新状态栏
     QString timestamp = QDateTime::currentDateTime().toString("hh:mm:ss");
-    updateStatus(QString("✅ 已更新 %1 | 在线: %2 台")
+    updateStatus(QString("已更新 %1 | 在线: %2 台")
                      .arg(timestamp)
                      .arg(latestArray.size()));
 }
@@ -779,7 +752,7 @@ void MainWindow::updateAllForCurrentHost()
     updateSoftIrqTable(obj["soft_irqs"].toArray());
 
     // 更新状态栏中的主机信息
-    updateStatus(QString("✅ 当前主机: %1").arg(currentHost));
+    updateStatus(QString("当前主机: %1").arg(currentHost));
 }
 
 void MainWindow::updateStatus(const QString &msg)

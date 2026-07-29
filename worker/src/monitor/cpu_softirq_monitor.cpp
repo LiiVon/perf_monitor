@@ -134,6 +134,11 @@ namespace monitor
 
     void CpuSoftIrqMonitor::UpdateOnce(monitor::proto::MonitorInfo *monitor_info)
     {
+        // 获取在线 CPU 数量（用于过滤）
+        int online_cpus = sysconf(_SC_NPROCESSORS_ONLN);
+        if (online_cpus <= 0)
+            online_cpus = 8;
+
         // ==================== 尝试内核模块 ====================
         int fd = open(CPU_SOFTIRQ_DEVICE, O_RDONLY);
         if (fd >= 0)
@@ -145,8 +150,10 @@ namespace monitor
                 struct softirq_stat *stats = static_cast<struct softirq_stat *>(addr);
                 auto now = std::chrono::steady_clock::now();
 
-                for (size_t i = 0; i < MAX_CPUS; ++i)
+                // 限制遍历次数：最多 online_cpus，同时遇到空名称也 break
+                for (size_t i = 0; i < MAX_CPUS && i < online_cpus; ++i)
                 {
+                    // 如果 cpu_name 为空，也 break（说明后面没有有效数据）
                     if (stats[i].cpu_name[0] == '\0')
                         break;
                     std::string cpu_name(stats[i].cpu_name);
@@ -193,14 +200,9 @@ namespace monitor
         if (current_data.empty())
             return;
 
-        // 获取在线 CPU 数量，用于过滤（仅处理实际存在的 CPU）
-        int online_cpus = sysconf(_SC_NPROCESSORS_ONLN);
-        if (online_cpus <= 0)
-            online_cpus = 8; // fallback
-
+        // 在线 CPU 数量已经在上面获取，直接使用
         auto now = std::chrono::steady_clock::now();
 
-        // 遍历每个 CPU
         for (auto &pair : current_data)
         {
             const std::string &cpu_name = pair.first;
@@ -239,7 +241,6 @@ namespace monitor
             cpu_softirqs_[cpu_name] = cached;
         }
     }
-
     void CpuSoftIrqMonitor::Stop()
     {
         // 无需特殊清理

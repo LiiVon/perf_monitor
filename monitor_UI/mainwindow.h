@@ -49,10 +49,10 @@ private slots:
 
 private:
     void setupUI();
-    void setupDarkTheme();
+    void setupLightTheme();  // 改为白色主题
     void appendData(const QJsonObject &obj);
     void updateCharts();
-    void updateAllForCurrentHost();          // 新函数：更新所有显示，使用当前选中的主机
+    void updateAllForCurrentHost();
     void updateOverview(const QJsonObject &obj);
     void updateCpuTable(const QJsonArray &cpuStats);
     void updateMemTable(const QJsonObject &memInfo);
@@ -66,8 +66,8 @@ private:
     QTimer *timer;
     QPushButton *refreshBtn;
     QLabel *statusLabel;
-    QLabel *hostCountLabel;       // 显示在线主机数量
-    QComboBox *hostSelector;      // 主机选择下拉框
+    QLabel *hostCountLabel;
+    QComboBox *hostSelector;
     QTabWidget *tabWidget;
 
     QList<DataPoint> history;
@@ -94,8 +94,8 @@ private:
     QLabel *memLabel;
 
     // 数据缓存
-    QJsonArray latestArray;        // 最近一次获取的所有主机数据
-    QString currentHost;           // 当前选中的主机名
+    QJsonArray latestArray;
+    QString currentHost;
 
     const QString API_URL = "http://192.168.31.135:50052/api/latest";
 };
