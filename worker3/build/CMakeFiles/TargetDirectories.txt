@@ -1,3 +1,0 @@
-/home/lz/lz_ws/perf_monitor/worker3/build/CMakeFiles/worker3.dir
-/home/lz/lz_ws/perf_monitor/worker3/build/CMakeFiles/edit_cache.dir
-/home/lz/lz_ws/perf_monitor/worker3/build/CMakeFiles/rebuild_cache.dir
