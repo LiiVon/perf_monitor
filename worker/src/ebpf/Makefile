@@ -16,13 +16,12 @@ BPF_SRCS := net_stats.bpf.c
 BPF_OBJS := $(patsubst %.bpf.c,$(OUTPUT_DIR)/%.bpf.o,$(BPF_SRCS))
 BPF_SKELS := $(patsubst %.bpf.c,$(SKEL_DIR)/%.skel.h,$(BPF_SRCS))
 
-# ========== 关键修改：显式添加 libbpf 头文件路径 ==========
+# ========== 显式添加 libbpf 头文件路径 ==========
 BPF_CFLAGS := -g -O2 -target bpf -D__TARGET_ARCH_$(ARCH)
 BPF_CFLAGS += -I.                              # 当前目录（vmlinux.h 所在）
 BPF_CFLAGS += -I/usr/include                   # 系统头文件
-BPF_CFLAGS += -I/usr/include/bpf               # libbpf 头文件（关键！）
-# 如果 libbpf 安装在 /usr/local，取消下一行的注释
-# BPF_CFLAGS += -I/usr/local/include/bpf
+BPF_CFLAGS += -I/usr/include/bpf               # libbpf 头文件
+
 
 .PHONY: all clean info
 
