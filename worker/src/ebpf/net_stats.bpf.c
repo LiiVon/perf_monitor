@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: GPL-2.0
 /*
  * net_stats.bpf.c - 基于 TC Hook 的 eBPF 网络流量统计程序
  * 极其高效、并发安全的“内核计数员”
@@ -45,8 +44,8 @@ struct net_stats
 struct
 {
   __uint(type, BPF_MAP_TYPE_HASH);
-  __uint(max_entries, 64); /* 最多支持 64 个网卡 */
-  __type(key, __u32);      /* ifindex */
+  __uint(max_entries, 64); // 最多支持 64 个网卡 
+  __type(key, __u32);      // ifindex 
   __type(value, struct net_stats);
 } net_stats_map SEC(".maps");
 
@@ -97,19 +96,21 @@ static __always_inline void update_stats(__u32 ifindex, __u32 len, bool is_rx)
  * 当数据包从网卡进入协议栈时触发
  * ctx->ingress_ifindex 包含入口网卡的 ifindex
  */
+
+// SEC("tc/ingress") 宏将 tc_ingress 函数放在 ELF 文件的 .text.tc/ingress 段中
 SEC("tc/ingress")
 int tc_ingress(struct __sk_buff *skb)
 {
   __u32 ifindex = skb->ifindex;
   __u32 len = skb->len;
 
-  /* 过滤无效数据 */
+  // 过滤无效数据 
   if (ifindex == 0 || len == 0)
     return TC_ACT_OK;
 
   update_stats(ifindex, len, true);
 
-  /* TC_ACT_OK: 继续正常处理，不影响数据包 */
+  // TC_ACT_OK: 继续正常处理，不影响数据包
   return TC_ACT_OK;
 }
 
@@ -118,19 +119,20 @@ int tc_ingress(struct __sk_buff *skb)
  *
  * 当数据包从协议栈发送到网卡时触发
  */
+// SEC("tc/egress") 宏将 tc_egress 函数放在 ELF 文件的 .text.tc/egress 段中
 SEC("tc/egress")
 int tc_egress(struct __sk_buff *skb)
 {
   __u32 ifindex = skb->ifindex;
   __u32 len = skb->len;
 
-  /* 过滤无效数据 */
+  // 过滤无效数据
   if (ifindex == 0 || len == 0)
     return TC_ACT_OK;
 
   update_stats(ifindex, len, false);
 
-  /* TC_ACT_OK: 继续正常处理，不影响数据包 */
+  // TC_ACT_OK: 继续正常处理，不影响数据包
   return TC_ACT_OK;
 }
 

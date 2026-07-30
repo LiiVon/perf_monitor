@@ -1,11 +1,42 @@
 # ============================================
 # Worker 子目录 CMakeLists.txt
-# 被顶层 CMake 通过 add_subdirectory(worker) 调用
 # ============================================
 
-# 不需要 project() 和 find_package，顶层已经做了
+cmake_minimum_required(VERSION 3.10)
+project(worker)
 
-# 源文件列表（注意：使用绝对路径相对于当前目录）
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# ===== 选项 =====
+option(ENABLE_EBPF "Enable eBPF-based network monitoring" OFF)
+
+# ===== 查找依赖 =====
+find_package(gRPC CONFIG REQUIRED)
+find_package(Protobuf REQUIRED)
+
+# 指定 proto 库路径
+set(PROTO_BUILD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../proto/build)
+
+# 如果启用 eBPF，查找 libbpf
+if(ENABLE_EBPF)
+    find_package(PkgConfig)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(LIBBPF libbpf)
+    else()
+        find_library(LIBBPF_LIBRARY bpf)
+        find_path(LIBBPF_INCLUDE_DIR bpf/libbpf.h)
+    endif()
+
+    if(NOT LIBBPF_FOUND AND NOT LIBBPF_LIBRARY)
+        message(WARNING "libbpf not found, disabling eBPF support")
+        set(ENABLE_EBPF OFF)
+    else()
+        message(STATUS "eBPF support enabled")
+    endif()
+endif()
+
+# ===== 源文件列表 =====
 set(WORKER_SOURCES
     src/main.cpp
     src/monitor/metric_collector.cpp
@@ -16,23 +47,39 @@ set(WORKER_SOURCES
     src/monitor/disk_monitor.cpp
     src/monitor/host_info_monitor.cpp
     src/monitor/user_monitor.cpp
-    src/monitor/net_monitor.cpp
     src/rpc/monitor_pusher.cpp
     src/utils/read_file.cpp
 )
 
-# 可执行文件
+# 根据 eBPF 支持选择网络监控实现
+if(ENABLE_EBPF)
+    list(APPEND WORKER_SOURCES src/monitor/net_ebpf_monitor.cpp)
+    message(STATUS "Using eBPF network monitor")
+else()
+    list(APPEND WORKER_SOURCES src/monitor/net_monitor.cpp)
+    message(STATUS "Using /proc/net/dev network monitor")
+endif()
+
+# ===== 可执行文件 =====
 add_executable(worker ${WORKER_SOURCES})
 
-# 头文件路径
+# ===== 头文件路径 =====
 target_include_directories(worker PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include          # worker 自己的头文件
-    ${CMAKE_CURRENT_SOURCE_DIR}/../proto/build   # proto 生成的头文件（如果顶层未传递）
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${PROTO_BUILD_DIR}
 )
 
-# 链接库（monitor_proto 由顶层 proto 子目录构建）
+# 如果启用 eBPF，添加 ebpf 头文件路径
+if(ENABLE_EBPF)
+    target_include_directories(worker PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/ebpf/.output   # net_stats.skel.h
+        ${LIBBPF_INCLUDE_DIR}                           # libbpf 头文件
+    )
+endif()
+
+# ===== 链接库 =====
 target_link_libraries(worker
-    monitor_proto              # 由 proto/CMakeLists.txt 构建
+    monitor_proto
     gRPC::grpc++
     gRPC::grpc
     protobuf::libprotobuf
@@ -40,10 +87,21 @@ target_link_libraries(worker
     dl
 )
 
-# ===== eBPF 支持（可选，默认关闭） =====
+# 如果启用 eBPF，链接 libbpf
 if(ENABLE_EBPF)
-    # 如果启用，添加 eBPF 相关源文件和依赖
-    # 此处省略，保持与原项目一致
+    if(LIBBPF_LIBRARY)
+        target_link_libraries(worker ${LIBBPF_LIBRARY})
+    elseif(LIBBPF_LDFLAGS)
+        target_link_libraries(worker ${LIBBPF_LDFLAGS})
+    else()
+        # 尝试默认库名
+        target_link_libraries(worker bpf)
+    endif()
 endif()
 
-message(STATUS "Worker configured: worker")
+# ===== 编译定义 =====
+if(ENABLE_EBPF)
+    target_compile_definitions(worker PRIVATE ENABLE_EBPF=1)
+endif()
+
+message(STATUS "Worker configured")

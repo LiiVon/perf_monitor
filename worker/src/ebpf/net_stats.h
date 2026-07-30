@@ -12,10 +12,10 @@ extern "C"
 
     struct net_stats
     {
-        uint64_t send_bytes;
         uint64_t rcv_bytes;
-        uint64_t send_packets;
         uint64_t rcv_packets;
+        uint64_t snd_bytes;
+        uint64_t snd_packets;
 
         // 下面的是在 proc/net/dev 中获取的错误和丢弃统计信息
         // uint64_t err_in;
