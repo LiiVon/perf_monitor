@@ -21,6 +21,7 @@ BPF_CFLAGS := -g -O2 -target bpf -D__TARGET_ARCH_$(ARCH)
 BPF_CFLAGS += -I.                              # 当前目录（vmlinux.h 所在）
 BPF_CFLAGS += -I/usr/include                   # 系统头文件
 BPF_CFLAGS += -I/usr/include/bpf               # libbpf 头文件
+BPF_CFLAGS += -Wno-missing-declarations   	# 忽略缺失声明的警告
 
 
 .PHONY: all clean info

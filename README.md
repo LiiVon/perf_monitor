@@ -1,4 +1,4 @@
-# Linux 服务器性能监控系统
+# 基于eBPF与内核模块的 Linux 服务器性能监控系统
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![C++](https://img.shields.io/badge/C%2B%2B-17-blue.svg)](https://isocpp.org/)
@@ -21,7 +21,6 @@
 - 💾 **数据持久化** — MySQL 存储历史数据，支持 LRU 缓存淘汰
 - ⚡ **eBPF 网络监控** — 基于 TC Hook 的零拷贝网络流量统计
 - 🧠 **自动降级** — mmap/eBPF 失败自动回退到 `/proc`，保证高可用
-- 🖼️ **浅色简洁 UI** — 白色卡片、圆角设计、青绿主色调
 
 ---
 
@@ -54,7 +53,7 @@
 │  │                         HostManager                                  │  │
 │  │  ├─ 主机标识提取 (ExtractHostName)                                  │  │
 │  │  ├─ 健康评分计算 (CalcScore)                                        │  │
-│  │  ├─ 内存缓存 (host_scores_) + LRU 淘汰                             │  │
+│  │  ├─ 内存缓存 (host_scores_)                                         │  │
 │  │  ├─ 变化率计算 (ComputeRates)                                       │  │
 │  │  └─ MySQL 持久化 (WriteToMysql)                                     │  │
 │  └──────────────────────────────┬───────────────────────────────────────┘  │
@@ -320,7 +319,7 @@
 │  │  │       ├─ ExtractHostName()                                     │   │
 │  │  │       ├─ CalcScore()                                           │   │
 │  │  │       ├─ ComputeRates()                                        │   │
-│  │  │       ├─ 内存缓存 (host_scores_ + LRU)                        │   │
+│  │  │       ├─ 内存缓存                                               │   │
 │  │  │       └─ WriteToMysql()                                        │   │
 │  │  └─ HTTP Server (50052) → /api/latest 返回 JSON                  │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
@@ -497,7 +496,10 @@ make
 
 ```bash
 mkdir build && cd build
-cmake .. -DENABLE_EBPF=ON  # 启用 eBPF
+# 启用 eBPF 需提前按照上述编译ebpf
+cmake .. -DENABLE_EBPF=ON  
+# 不启用 eBPF 
+cmake .. 
 make -j$(nproc)
 ```
 
@@ -516,7 +518,7 @@ make -j$(nproc)
 ```bash
 cd worker/src/kmod
 sudo insmod cpu_stat_collector.ko
-sudo insmod softirq_collector.ko
+sudo insmod cpu_softirq_collector.ko
 sudo chmod 666 /dev/cpu_stat_monitor /dev/cpu_softirq_monitor
 ```
 
@@ -583,10 +585,23 @@ sudo bpftool map dump id <map_id>
 ### 单机多机模拟
 
 ```bash
-cp -r worker worker1 worker2 worker3
-# 分别修改 hostname_ 为 worker-1、worker-2、worker-3
-# 分别编译并启动
-curl http://127.0.0.1:50052/api/latest   # 应返回 3 台主机
+cp -r worker worker1 worker2 
+# 编辑 worker1/src/monitor/metric_collector.cpp，找到构造函数中的 hostname_ 赋值：
+# // 原本是自动获取主机名
+# // hostname_ = hostname;   // 注释掉或删除
+
+# // 改为硬编码
+hostname_ = "worker-1";
+
+同时修改一下worker1 worker2 的cmkae
+将worker  的地方 都改成 worker1 2
+
+最后顶层cmakelists  可以将注释取消
+
+add_subdirectory(worker)
+add_subdirectory(worker1)
+add_subdirectory(worker2)
+# ... 其他内容不变 ...
 ```
 
 ---

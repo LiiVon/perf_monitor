@@ -1,0 +1,1 @@
+savedcmd_cpu_stat_collector.ko := ld -r -m elf_x86_64 -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T /usr/src/linux-headers-7.0.0-28-generic/scripts/module.lds -o cpu_stat_collector.ko cpu_stat_collector.o cpu_stat_collector.mod.o .module-common.o

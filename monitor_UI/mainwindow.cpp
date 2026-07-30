@@ -367,15 +367,12 @@ void MainWindow::appendData(const QJsonObject &obj)
     DataPoint dp;
     dp.timestamp = QDateTime::currentSecsSinceEpoch();
 
-    // CPU 使用率（取第一个核心）
     auto cpuStats = obj["cpu_stats"].toArray();
     dp.cpuPercent = cpuStats.isEmpty() ? 0 : cpuStats[0].toObject()["cpu_percent"].toDouble();
 
-    // 内存使用率
     auto memInfo = obj["mem_info"].toObject();
     dp.memUsedPercent = memInfo["used_percent"].toDouble();
 
-    // 网络速率（取第一个网卡）
     auto netInfos = obj["net_infos"].toArray();
     if (!netInfos.isEmpty()) {
         auto net = netInfos[0].toObject();
@@ -386,7 +383,6 @@ void MainWindow::appendData(const QJsonObject &obj)
         dp.netOutRate = 0;
     }
 
-    // 磁盘利用率：取所有磁盘中最大值
     auto diskInfos = obj["disk_infos"].toArray();
     double maxUtil = 0;
     for (const auto &item : diskInfos) {
@@ -395,32 +391,39 @@ void MainWindow::appendData(const QJsonObject &obj)
     }
     dp.diskUtil = maxUtil;
 
-    history.append(dp);
-    if (history.size() > MAX_HISTORY)
-        history.removeFirst();
-
-    updateCharts();
+    // 追加到当前主机的历史
+    QString host = obj["hostname"].toString();
+    if (!host.isEmpty()) {
+        historyMap[host].append(dp);
+        if (historyMap[host].size() > MAX_HISTORY)
+            historyMap[host].removeFirst();
+        // 更新图表（仅当当前主机就是这个主机时）
+        if (host == currentHost) {
+            updateChartsForHost(host);
+        }
+    }
 }
 
-void MainWindow::updateCharts()
+void MainWindow::updateChartsForHost(const QString &host)
 {
     if (!cpuChartView || !memChartView || !netChartView || !diskChartView)
         return;
 
+    auto &history = historyMap[host];
     if (history.size() < 2) return;
 
     // ---- CPU 图表 ----
     {
         QLineSeries *cpuSeries = new QLineSeries();
         cpuSeries->setName("CPU使用率 (%)");
-        cpuSeries->setColor(QColor("#2986d8"));  // 蓝色
+        cpuSeries->setColor(QColor("#2986d8"));
         for (int i = 0; i < history.size(); ++i) {
             cpuSeries->append(i, history[i].cpuPercent);
         }
         QChart *cpuChart = new QChart();
         cpuChart->addSeries(cpuSeries);
         cpuChart->setTitle("CPU使用率趋势");
-        cpuChart->setTheme(QChart::ChartThemeLight);  // 浅色主题
+        cpuChart->setTheme(QChart::ChartThemeLight);
         cpuChart->createDefaultAxes();
         cpuChart->axisX()->setRange(0, MAX_HISTORY);
         cpuChart->axisY()->setRange(0, 100);
@@ -432,7 +435,7 @@ void MainWindow::updateCharts()
     {
         QLineSeries *memSeries = new QLineSeries();
         memSeries->setName("内存使用率 (%)");
-        memSeries->setColor(QColor("#e67e22"));  // 橙色
+        memSeries->setColor(QColor("#e67e22"));
         for (int i = 0; i < history.size(); ++i) {
             memSeries->append(i, history[i].memUsedPercent);
         }
@@ -451,10 +454,10 @@ void MainWindow::updateCharts()
     {
         QLineSeries *inSeries = new QLineSeries();
         inSeries->setName("接收速率 (KB/s)");
-        inSeries->setColor(QColor("#1abc9c"));  // 青绿
+        inSeries->setColor(QColor("#1abc9c"));
         QLineSeries *outSeries = new QLineSeries();
         outSeries->setName("发送速率 (KB/s)");
-        outSeries->setColor(QColor("#2986d8"));  // 蓝色
+        outSeries->setColor(QColor("#2986d8"));
         for (int i = 0; i < history.size(); ++i) {
             inSeries->append(i, history[i].netInRate);
             outSeries->append(i, history[i].netOutRate);
@@ -474,7 +477,7 @@ void MainWindow::updateCharts()
     {
         QLineSeries *diskSeries = new QLineSeries();
         diskSeries->setName("磁盘利用率 (%)");
-        diskSeries->setColor(QColor("#f39c12"));  // 橙色
+        diskSeries->setColor(QColor("#f39c12"));
         for (int i = 0; i < history.size(); ++i) {
             diskSeries->append(i, history[i].diskUtil);
         }
@@ -701,6 +704,7 @@ void MainWindow::onReplyFinished(QNetworkReply *reply)
     for (const auto &item : latestArray) {
         QString name = item.toObject()["hostname"].toString();
         hostNames << name;
+        appendData(item.toObject());
     }
     hostSelector->addItems(hostNames);
 
@@ -727,11 +731,9 @@ void MainWindow::onHostSelected(int index)
     QString host = latestArray[index].toObject()["hostname"].toString();
     if (host != currentHost) {
         currentHost = host;
-        history.clear();   // 清空历史，重新记录当前主机的趋势
         updateAllForCurrentHost();
     }
 }
-
 void MainWindow::updateAllForCurrentHost()
 {
     if (latestArray.isEmpty()) return;
@@ -744,14 +746,18 @@ void MainWindow::updateAllForCurrentHost()
     currentHost = obj["hostname"].toString();
 
     updateOverview(obj);
-    appendData(obj);
+    // 不再调用 appendData，因为 appendData 会被定时器调用
+    // 但我们需要确保当前主机的图表有数据
+    if (historyMap.contains(currentHost) && historyMap[currentHost].size() >= 2) {
+        updateChartsForHost(currentHost);
+    }
+
     updateCpuTable(obj["cpu_stats"].toArray());
     updateMemTable(obj["mem_info"].toObject());
     updateNetTable(obj["net_infos"].toArray());
     updateDiskTable(obj["disk_infos"].toArray());
     updateSoftIrqTable(obj["soft_irqs"].toArray());
 
-    // 更新状态栏中的主机信息
     updateStatus(QString("当前主机: %1").arg(currentHost));
 }
 

@@ -38,6 +38,8 @@ add_subdirectory(proto)
 
 # 2. Worker：依赖 monitor_proto
 add_subdirectory(worker)
+# add_subdirectory(worker1)
+# add_subdirectory(worker2)
 
 # 3. Manager：依赖 monitor_proto（可选）
 if(BUILD_MANAGER)

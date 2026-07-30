@@ -16,6 +16,7 @@
 #include <QProgressBar>
 #include <QMessageBox>
 #include <QJsonArray>
+#include <QMap>
 
 #include <QtCharts/QChartView>
 #include <QtCharts/QLineSeries>
@@ -49,9 +50,9 @@ private slots:
 
 private:
     void setupUI();
-    void setupLightTheme();  // 改为白色主题
+    void setupLightTheme();
     void appendData(const QJsonObject &obj);
-    void updateCharts();
+    void updateChartsForHost(const QString &host);
     void updateAllForCurrentHost();
     void updateOverview(const QJsonObject &obj);
     void updateCpuTable(const QJsonArray &cpuStats);
@@ -70,8 +71,12 @@ private:
     QComboBox *hostSelector;
     QTabWidget *tabWidget;
 
-    QList<DataPoint> history;
+    // 每个主机独立的历史数据
+    QMap<QString, QList<DataPoint>> historyMap;
     const int MAX_HISTORY = 60;
+
+    // 当前选中的主机
+    QString currentHost;
 
     // 图表控件
     QChartView *cpuChartView;
@@ -95,7 +100,6 @@ private:
 
     // 数据缓存
     QJsonArray latestArray;
-    QString currentHost;
 
     const QString API_URL = "http://192.168.31.135:50052/api/latest";
 };
