@@ -75,7 +75,8 @@ int main(int argc, char *argv[])
     std::cout << "Query service available for performance data queries" << std::endl;
 
     // ===== 启动 HTTP 服务（在独立线程中） =====
-    std::thread http_thread([&]() {
+    std::thread http_thread([&]()
+                            {
         httplib::Server http_svr;
 
         // API: 获取所有主机的最新完整监控数据
@@ -215,8 +216,7 @@ int main(int argc, char *argv[])
         });
 
         std::cout << "HTTP server listening on 0.0.0.0:50052" << std::endl;
-        http_svr.listen("0.0.0.0", 50052);
-    });
+        http_svr.listen("0.0.0.0", 50052); });
 
     http_thread.detach(); // 让 HTTP 服务在后台独立运行
 
