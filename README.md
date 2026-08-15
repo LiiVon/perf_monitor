@@ -126,33 +126,33 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    subgraph Worker[Worker 节点]
-        A1[/proc/stat] --> A2[CpuStatMonitor]
-        A3[内核模块 /dev/cpu_stat_monitor] --> A4[Zero-Copy mmap]
-        A5[eBPF TC Hook] --> A6[NetEbpfMonitor]
-        A7[内存/磁盘/负载/软中断采集] --> A8[MetricCollector]
-        A2 --> A8
-        A4 --> A8
-        A6 --> A8
-        A8 --> A9[MonitorInfo protobuf]
+    subgraph Worker[Worker nodes]
+        P1[proc_stat] --> P2[CpuStatMonitor]
+        P3[Kernel module mmap] --> P4[Zero copy read]
+        P5[eBPF TC Hook] --> P6[NetEbpfMonitor]
+        P7[Memory disk load softirq] --> P8[MetricCollector]
+        P2 --> P8
+        P4 --> P8
+        P6 --> P8
+        P8 --> P9[MonitorInfo protobuf]
     end
 
-    subgraph Manager[Manager 端]
-        A9 --> B1[gRPC SetMonitorInfo]
-        B1 --> B2[HostManager]
-        B2 --> B3[CalcScore]
-        B2 --> B4[ComputeRates]
-        B2 --> B5[MySQL 5 张表]
-        B2 --> B6[缓存 host_scores_]
-        B6 --> B7[HTTP /api/latest]
-        B5 --> B8[QueryService]
+    subgraph Manager[Manager node]
+        P9 --> M1[gRPC push]
+        M1 --> M2[HostManager]
+        M2 --> M3[CalcScore]
+        M2 --> M4[ComputeRates]
+        M2 --> M5[MySQL tables]
+        M2 --> M6[host_scores cache]
+        M6 --> M7[HTTP API]
+        M5 --> M8[QueryService]
     end
 
-    subgraph UI[Qt 看板]
-        B7 --> C1[QTimer 3s 刷新]
-        C1 --> C2[JSON 解析]
-        C2 --> C3[CPU/内存/网络/磁盘图表]
-        C2 --> C4[6 个详细数据表]
+    subgraph UI[Qt dashboard]
+        M7 --> U1[QTimer refresh]
+        U1 --> U2[JSON parse]
+        U2 --> U3[Charts]
+        U2 --> U4[Detail tables]
     end
 ```
 
