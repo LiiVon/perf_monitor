@@ -18,9 +18,10 @@
 - 📈 **健康评分** — 多维度加权评分算法（CPU 35% + 内存 30% + 负载 15% + 磁盘 15% + 网络 5%）
 - 🖥️ **Qt 可视化看板** — 浅色主题，6 个 Tab 页展示完整数据，支持多主机切换
 - 🔌 **双接口支持** — gRPC (50051) + HTTP/JSON (50052)，便于前端集成
-- 💾 **数据持久化** — MySQL 存储历史数据，支持 LRU 缓存淘汰
+- 💾 **数据持久化** — MySQL 存储历史数据，连接池复用，LRU 缓存淘汰
 - ⚡ **eBPF 网络监控** — 基于 TC Hook 的零拷贝网络流量统计
 - 🧠 **自动降级** — mmap/eBPF 失败自动回退到 `/proc`，保证高可用
+- 🔒 **线程安全** — 异步任务队列解耦 gRPC 线程，static map 互斥锁保护，防 SQL 注入
 
 ---
 
@@ -73,6 +74,86 @@
 │                          │ monitor_db  │                                  │
 │                          └─────────────┘                                  │
 └─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 1.1 数据流向图（整体）
+
+```mermaid
+flowchart LR
+    A[多节点 Worker] --> B[MetricCollector]
+    B --> C[CPU / Memory / Disk / Net / Softirq Monitor]
+    C --> D[MonitorInfo Protobuf]
+    D --> E[MonitorPusher]
+    E --> F[gRPC: SetMonitorInfo]
+    F --> G[Manager: GrpcServerImpl]
+    G --> H[HostManager]
+    H --> I[CalcScore / ComputeRates]
+    I --> J[MySQL 持久化]
+    J --> K[QueryService / HTTP API]
+    K --> L[Qt Dashboard]
+    L --> M[运维人员/告警决策]
+
+    H --> N[host_scores_ 内存缓存]
+    N --> K
+```
+
+```mermaid
+sequenceDiagram
+    participant W as Worker
+    participant C as MetricCollector
+    participant P as MonitorPusher
+    participant G as gRPC Manager
+    participant H as HostManager
+    participant M as MySQL
+    participant Q as QueryService
+    participant UI as Qt Dashboard
+
+    W->>C: 采集 CPU/内存/磁盘/网络/软中断
+    C-->>W: MonitorInfo
+    W->>P: 定时推送
+    P->>G: SetMonitorInfo(MonitorInfo)
+    G->>H: OnDataReceived(info)
+    H->>H: 评分 + 变化率 + 离线判定
+    H->>M: WriteToMysql()
+    M-->>Q: 历史数据查询
+    H-->>UI: /api/latest 最新快照
+    UI->>Q: 获取实时数据
+``` 
+
+### 1.2 数据流向图（采集与处理分层）
+
+```mermaid
+flowchart TD
+    subgraph Worker[Worker 节点]
+        A1[/proc/stat] --> A2[CpuStatMonitor]
+        A3[内核模块 /dev/cpu_stat_monitor] --> A4[Zero-Copy mmap]
+        A5[eBPF TC Hook] --> A6[NetEbpfMonitor]
+        A7[内存/磁盘/负载/软中断采集] --> A8[MetricCollector]
+        A2 --> A8
+        A4 --> A8
+        A6 --> A8
+        A8 --> A9[MonitorInfo protobuf]
+    end
+
+    subgraph Manager[Manager 端]
+        A9 --> B1[gRPC SetMonitorInfo]
+        B1 --> B2[HostManager]
+        B2 --> B3[CalcScore]
+        B2 --> B4[ComputeRates]
+        B2 --> B5[MySQL 5 张表]
+        B2 --> B6[缓存 host_scores_]
+        B6 --> B7[HTTP /api/latest]
+        B5 --> B8[QueryService]
+    end
+
+    subgraph UI[Qt 看板]
+        B7 --> C1[QTimer 3s 刷新]
+        C1 --> C2[JSON 解析]
+        C2 --> C3[CPU/内存/网络/磁盘图表]
+        C2 --> C4[6 个详细数据表]
+    end
 ```
 
 ---
@@ -177,7 +258,7 @@
 │  │                         Worker (被监控机器)                        │   │
 │  │                                                                   │   │
 │  │  1. MetricCollector 采集所有监控数据                              │   │
-│  │  2. MonitorPusher 定时触发 (每 3 秒)                             │   │
+│  │  2. MonitorPusher 定时触发 (每 5 秒)                             │   │
 │  │  3. stub->SetMonitorInfo(info)  ← gRPC 客户端调用                │   │
 │  └──────────────────────────────┬──────────────────────────────────────┘   │
 │                                 │                                          │
@@ -191,8 +272,8 @@
 │  │  │                                                             │   │   │
 │  │  │  GrpcServerImpl::SetMonitorInfo()                         │   │   │
 │  │  │    1. 校验主机名                                           │   │   │
-│  │  │    2. 存入 host_data_ 内存缓存                             │   │   │
-│  │  │    3. 同步回调 → HostManager::OnDataReceived()            │   │   │
+│  │  │    2. 存入 host_data_ 内存缓存 + 更新 LRU                 │   │   │
+│  │  │    3. 异步入队 → WorkerThread 回调 HostManager            │   │   │
 │  │  │    4. 返回 Empty 响应                                      │   │   │
 │  │  └─────────────────────────────────────────────────────────────┘   │   │
 │  │                              │                                     │   │
@@ -300,7 +381,7 @@
 │                                    │                                        │
 │                                    ▼                                        │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ Worker 采集循环 (每 3 秒)                                         │   │
+│  │  Worker 采集循环 (每 5 秒)                                         │   │
 │  │  ├─ CpuStatMonitor   → mmap 或 /proc/stat                        │   │
 │  │  ├─ CpuSoftIrqMonitor → mmap 或 /proc/softirqs                   │   │
 │  │  ├─ NetEbpfMonitor   → eBPF 或 /proc/net/dev                     │   │
@@ -313,9 +394,8 @@
 │                                    ▼                                        │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │ Manager 接收与处理                                                 │   │
-│  │  ├─ GrpcServerImpl::SetMonitorInfo() → 入队立即返回               │   │
-│  │  ├─ WorkerThread 异步处理                                         │   │
-│  │  │   └─ HostManager::OnDataReceived()                             │   │
+│  │  ├─ GrpcServerImpl::SetMonitorInfo() → 缓存 + 异步入队        │   │
+│  │  │   └─ WorkerThread → HostManager::OnDataReceived()          │   │
 │  │  │       ├─ ExtractHostName()                                     │   │
 │  │  │       ├─ CalcScore()                                           │   │
 │  │  │       ├─ ComputeRates()                                        │   │
@@ -327,12 +407,14 @@
 │                                    │ HTTP / JSON                           │
 │                                    ▼                                        │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ Qt UI (每 3 秒轮询)                                               │   │
+│  │  Qt UI (每 3 秒轮询)                                               │   │
 │  │  ├─ fetchData() → GET /api/latest                                │   │
 │  │  ├─ 解析 JSON → 更新 4 个趋势图 + 5 个卡片 + 6 个表格            │   │
 │  │  └─ 主机切换 → 清空历史 → 重新加载                                │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────────────┘
+
+> **注意**：Worker 推送间隔为 5 秒，Qt UI 轮询间隔为 3 秒，两者独立运行。
 ```
 ---
 
@@ -462,7 +544,7 @@ EXIT;
 
 导入表结构：
 ```bash
-mysql -u monitor -pmonitor666 monitor_db < manager/sql/init_tables.sql
+mysql -u monitor -pmonitor666 monitor_db < manager/sql/init_server_perf.sql
 ```
 
 ### 3. 克隆项目
@@ -535,7 +617,9 @@ cd build/manager
 ```
 Starting Monitor Client (Manager Mode)...
 Listening on: 0.0.0.0:50051
-QueryManager: MySQL connection initialized
+MysqlPool: created 4 connections
+MySQL connection pool initialized
+QueryManager initialized successfully
 Monitor Client listening on 0.0.0.0:50051
 HTTP server listening on 0.0.0.0:50052
 ```
@@ -585,23 +669,18 @@ sudo bpftool map dump id <map_id>
 ### 单机多机模拟
 
 ```bash
-cp -r worker worker1 worker2 
-# 编辑 worker1/src/monitor/metric_collector.cpp，找到构造函数中的 hostname_ 赋值：
-# // 原本是自动获取主机名
-# // hostname_ = hostname;   // 注释掉或删除
+# 复制 Worker 目录
+cp -r worker worker1
+cp -r worker worker2
 
-# // 改为硬编码
-hostname_ = "worker-1";
+# 分别修改 worker1、worker2 中 metric_collector.cpp 的主机名
+# 将 hostname_ 硬编码为 "worker-1"、"worker-2"
 
-同时修改一下worker1 worker2 的cmkae
-将worker  的地方 都改成 worker1 2
-
-最后顶层cmakelists  可以将注释取消
-
+# 修改各 worker 的 CMakeLists.txt 中的 target 名称
+# 在顶层 CMakeLists.txt 中添加：
 add_subdirectory(worker)
 add_subdirectory(worker1)
 add_subdirectory(worker2)
-# ... 其他内容不变 ...
 ```
 
 ---
@@ -649,11 +728,12 @@ Score = CPU_Score × 35% + Mem_Score × 30% + Load_Score × 15%
 
 | 参数 | 默认值 | 修改位置 |
 |------|--------|----------|
-| 推送间隔 | 3 秒 | `MonitorPusher` 构造参数 |
+| 推送间隔 | 5 秒 | `MonitorPusher` 构造参数 |
 | 离线阈值 | 60 秒 | `host_manager.cpp` ProcessLoop |
 | gRPC 端口 | 50051 | `main.cpp` |
 | HTTP 端口 | 50052 | `main.cpp` |
-| 最大缓存主机 | 1000 | `grpc_server.h` |
+| 最大缓存主机 | 1000 (LRU淘汰) | `grpc_server.h` max_hosts_ |
+| MySQL 连接池大小 | 4 | `main.cpp` MysqlPool::Init |
 
 ---
 
@@ -666,7 +746,7 @@ Score = CPU_Score × 35% + Mem_Score × 30% + Load_Score × 15%
 | **数据采集** | Linux procfs、mmap、内核模块、eBPF TC Hook |
 | **HTTP 服务** | cpp-httplib (Header-only) |
 | **JSON 处理** | nlohmann/json (Header-only) |
-| **数据库** | MySQL 8.0+ |
+| **数据库** | MySQL 8.0+（连接池复用 + 转义防注入） |
 | **前端** | Qt 6.10 + QChart |
 | **构建系统** | CMake 3.10+ |
 | **内核编程** | Linux Kernel Module、eBPF (libbpf) |

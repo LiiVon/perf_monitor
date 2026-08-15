@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <mutex>
 #include <sstream>
 
 #ifdef ENABLE_MYSQL
@@ -69,6 +70,7 @@ namespace monitor
     };
 
     // 历史数据存储（静态全局，保留原逻辑）
+    static std::mutex static_mtx_;  // 保护以下所有 static map
     static std::map<std::string, std::map<std::string, NetDetailSample>> last_net_samples;
     static std::map<std::string, std::map<std::string, SoftIrqSample>> last_softirq_samples;
     static std::map<std::string, MemDetailSample> last_mem_samples;
@@ -190,6 +192,8 @@ namespace monitor
 
     HostManager::~HostManager() { Stop(); }
 
+    void HostManager::SetMysqlPool(MysqlPool *pool) { mysql_pool_ = pool; }
+
     void HostManager::Start()
     {
         running_ = true;
@@ -207,7 +211,13 @@ namespace monitor
     {
         while (running_)
         {
-            std::this_thread::sleep_for(std::chrono::seconds(60));
+            // 逐秒检查可中断睡眠（最多 1 秒响应退出）
+            for (int i = 0; i < 60 && running_; ++i)
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+
+            if (!running_)
+                break;
+
             auto now = std::chrono::system_clock::now();
             std::lock_guard<std::mutex> lock(mtx_);
             for (auto it = host_scores_.begin(); it != host_scores_.end();)
@@ -251,9 +261,13 @@ namespace monitor
         // 提取当前采样数据
         PerfSample curr;
         ExtractPerfData(info, net_in_rate, net_out_rate, score, curr);
-        PerfSample last = last_perf_samples[host_name]; // 可能为空，ComputeRates 会处理
+        PerfSample last;
+        {
+            std::lock_guard<std::mutex> slock(static_mtx_);
+            last = last_perf_samples[host_name]; // 可能为空，ComputeRates 会处理
+            last_perf_samples[host_name] = curr;
+        }
         RateInfo rates = ComputeRates(curr, last);
-        last_perf_samples[host_name] = curr;
 
         // 更新评分缓存
         {
@@ -432,18 +446,24 @@ namespace monitor
                                    const RateInfo &rates)
     {
 #ifdef ENABLE_MYSQL
-        MYSQL *conn = mysql_init(NULL);
+        if (!mysql_pool_)
+        {
+            std::cerr << "WriteToMysql: MySQL pool not initialized\n";
+            return;
+        }
+
+        MYSQL *conn = mysql_pool_->Acquire();
         if (!conn)
         {
-            std::cerr << "mysql_init failed\n";
+            std::cerr << "WriteToMysql: failed to acquire connection\n";
             return;
         }
-        if (!mysql_real_connect(conn, MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DB, 0, NULL, 0))
-        {
-            std::cerr << "mysql_real_connect failed: " << mysql_error(conn) << "\n";
-            mysql_close(conn);
-            return;
-        }
+
+        // 转义主机名，防止 SQL 注入
+        char escaped_host[512];
+        unsigned long host_len = mysql_real_escape_string(
+            conn, escaped_host, host_name.c_str(), host_name.size());
+        std::string safe_host(escaped_host, host_len);
 
         std::time_t t = std::chrono::system_clock::to_time_t(
             std::chrono::time_point_cast<std::chrono::system_clock::duration>(host_score.timestamp));
@@ -508,6 +528,7 @@ namespace monitor
                     disk_util_percent = util;
             }
 
+            std::lock_guard<std::mutex> slock(static_mtx_);
             static std::map<std::string, float> last_disk_util;
             float disk_util_percent_rate = 0;
             if (last_disk_util.count(host_name) && last_disk_util[host_name] != 0)
@@ -526,7 +547,7 @@ namespace monitor
                 << "load_avg_1_rate, load_avg_5_rate, load_avg_15_rate, "
                 << "mem_used_percent_rate, total_rate, free_rate, avail_rate, "
                 << "disk_util_percent_rate, send_rate_rate, rcv_rate_rate, timestamp) "
-                << "VALUES ('" << host_name << "',"
+                << "VALUES ('" << safe_host << "',"
                 << cpu_percent << "," << usr_percent << "," << system_percent << ","
                 << nice_percent << "," << idle_percent << "," << io_wait_percent << ","
                 << irq_percent << "," << soft_irq_percent << ","
@@ -562,6 +583,7 @@ namespace monitor
             curr.drop_in = net.drop_in();
             curr.drop_out = net.drop_out();
 
+            std::lock_guard<std::mutex> slock(static_mtx_);
             NetDetailSample &last = last_net_samples[host_name][net_name];
             auto rate_u64 = [](uint64_t now_val, uint64_t last_val) -> float
             {
@@ -577,7 +599,7 @@ namespace monitor
                 << "rcv_bytes_rate_rate, rcv_packets_rate_rate, "
                 << "snd_bytes_rate_rate, snd_packets_rate_rate, "
                 << "err_in_rate, err_out_rate, drop_in_rate, drop_out_rate, "
-                << "timestamp) VALUES ('" << host_name << "','" << net_name << "',"
+                << "timestamp) VALUES ('" << safe_host << "','" << net_name << "',"
                 << curr.err_in << "," << curr.err_out << ","
                 << curr.drop_in << "," << curr.drop_out << ","
                 << curr.rcv_bytes_rate << "," << curr.rcv_packets_rate << ","
@@ -612,6 +634,7 @@ namespace monitor
             curr.hrtimer = sirq.hrtimer();
             curr.rcu = sirq.rcu();
 
+            std::lock_guard<std::mutex> slock(static_mtx_);
             SoftIrqSample &last = last_softirq_samples[host_name][cpu_name];
             std::ostringstream oss;
             oss << "INSERT INTO server_softirq_detail "
@@ -619,7 +642,7 @@ namespace monitor
                 << "irq_poll, tasklet, sched, hrtimer, rcu, "
                 << "hi_rate, timer_rate, net_tx_rate, net_rx_rate, block_rate, "
                 << "irq_poll_rate, tasklet_rate, sched_rate, hrtimer_rate, rcu_rate, "
-                << "timestamp) VALUES ('" << host_name << "','" << cpu_name << "',"
+                << "timestamp) VALUES ('" << safe_host << "','" << cpu_name << "',"
                 << curr.hi << "," << curr.timer << "," << curr.net_tx << ","
                 << curr.net_rx << "," << curr.block << "," << curr.irq_poll << ","
                 << curr.tasklet << "," << curr.sched << "," << curr.hrtimer << ","
@@ -663,6 +686,7 @@ namespace monitor
             curr.sreclaimable = mem.sreclaimable();
             curr.sunreclaim = mem.sunreclaim();
 
+            std::lock_guard<std::mutex> slock(static_mtx_);
             MemDetailSample &last = last_mem_samples[host_name];
             std::ostringstream oss;
             oss << "INSERT INTO server_mem_detail "
@@ -673,7 +697,7 @@ namespace monitor
                 << "active_rate, inactive_rate, active_anon_rate, inactive_anon_rate, "
                 << "active_file_rate, inactive_file_rate, dirty_rate, writeback_rate, "
                 << "anon_pages_rate, mapped_rate, kreclaimable_rate, sreclaimable_rate, "
-                << "sunreclaim_rate, timestamp) VALUES ('" << host_name << "',"
+                << "sunreclaim_rate, timestamp) VALUES ('" << safe_host << "',"
                 << curr.total << "," << curr.free << "," << curr.avail << ","
                 << curr.buffers << "," << curr.cached << "," << curr.swap_cached << ","
                 << curr.active << "," << curr.inactive << ","
@@ -720,6 +744,7 @@ namespace monitor
             curr.avg_write_latency_ms = disk.avg_write_latency_ms();
             curr.util_percent = disk.util_percent();
 
+            std::lock_guard<std::mutex> slock(static_mtx_);
             DiskDetailSample &last = last_disk_samples[host_name][disk_name];
             std::ostringstream oss;
             oss << "INSERT INTO server_disk_detail "
@@ -729,7 +754,7 @@ namespace monitor
                 << "avg_read_latency_ms, avg_write_latency_ms, util_percent, "
                 << "read_bytes_per_sec_rate, write_bytes_per_sec_rate, read_iops_rate, write_iops_rate, "
                 << "avg_read_latency_ms_rate, avg_write_latency_ms_rate, util_percent_rate, "
-                << "timestamp) VALUES ('" << host_name << "','" << disk_name << "',"
+                << "timestamp) VALUES ('" << safe_host << "','" << disk_name << "',"
                 << disk.reads() << "," << disk.writes() << ","
                 << disk.sectors_read() << "," << disk.sectors_written() << ","
                 << disk.read_time_ms() << "," << disk.write_time_ms() << ","
@@ -750,7 +775,7 @@ namespace monitor
             last = curr;
         }
 
-        mysql_close(conn);
+        mysql_pool_->Release(conn);
 #else
         // 未启用 MySQL 时，仅消除未使用参数警告
         (void)host_name;

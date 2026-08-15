@@ -92,6 +92,22 @@ QueryManager::ParseTime(const char *str) const
   return std::chrono::system_clock::from_time_t(std::mktime(&tm));
 }
 
+std::string QueryManager::EscapeString(const std::string &input) const
+{
+#ifdef ENABLE_MYSQL
+  if (!conn_)
+    return input;
+  // mysql_real_escape_string 需要 2*len+1 的缓冲区
+  std::string output(input.size() * 2 + 1, '\0');
+  unsigned long len = mysql_real_escape_string(
+      const_cast<MYSQL *>(conn_), &output[0], input.c_str(), input.size());
+  output.resize(len);
+  return output;
+#else
+  return input;
+#endif
+}
+
 int QueryManager::GetTotalCount(const std::string &count_sql)
 {
 #ifdef ENABLE_MYSQL
@@ -149,11 +165,12 @@ QueryManager::QueryPerformance(const std::string &server_name,
 
   std::string start_time = FormatTime(time_range.start_time);
   std::string end_time = FormatTime(time_range.end_time);
+  std::string safe_name = EscapeString(server_name);
 
   // 获取总数
   std::ostringstream count_sql;
   count_sql << "SELECT COUNT(*) FROM server_performance WHERE server_name='"
-            << server_name << "' AND timestamp BETWEEN '" << start_time
+            << safe_name << "' AND timestamp BETWEEN '" << start_time
             << "' AND '" << end_time << "'";
   if (total_count)
   {
@@ -171,7 +188,7 @@ QueryManager::QueryPerformance(const std::string &server_name,
          "disk_util_percent_rate, load_avg_1_rate, send_rate_rate, "
          "rcv_rate_rate "
          "FROM server_performance WHERE server_name='"
-      << server_name << "' AND timestamp BETWEEN '" << start_time << "' AND '"
+      << safe_name << "' AND timestamp BETWEEN '" << start_time << "' AND '"
       << end_time << "' ORDER BY timestamp DESC LIMIT " << page_size
       << " OFFSET " << offset;
 
@@ -281,6 +298,7 @@ QueryManager::QueryTrend(const std::string &server_name,
 
   std::string start_time = FormatTime(time_range.start_time);
   std::string end_time = FormatTime(time_range.end_time);
+  std::string safe_name = EscapeString(server_name);
 
   std::ostringstream sql;
   if (interval_seconds > 0)
@@ -307,7 +325,7 @@ QueryManager::QueryTrend(const std::string &server_name,
            "AVG(disk_util_percent_rate) as disk_util_percent_rate, "
            "AVG(load_avg_1_rate) as load_avg_1_rate "
            "FROM server_performance WHERE server_name='"
-        << server_name << "' AND timestamp BETWEEN '" << start_time << "' AND '"
+        << safe_name << "' AND timestamp BETWEEN '" << start_time << "' AND '"
         << end_time
         << "' GROUP BY server_name, time_bucket ORDER BY time_bucket";
   }
@@ -320,7 +338,7 @@ QueryManager::QueryTrend(const std::string &server_name,
            "rcv_rate, score, cpu_percent_rate, mem_used_percent_rate, "
            "disk_util_percent_rate, load_avg_1_rate "
            "FROM server_performance WHERE server_name='"
-        << server_name << "' AND timestamp BETWEEN '" << start_time << "' AND '"
+        << safe_name << "' AND timestamp BETWEEN '" << start_time << "' AND '"
         << end_time << "' ORDER BY timestamp";
   }
 
@@ -416,6 +434,7 @@ QueryManager::QueryAnomaly(const std::string &server_name,
 
   std::string start_time = FormatTime(time_range.start_time);
   std::string end_time = FormatTime(time_range.end_time);
+  std::string safe_name = EscapeString(server_name);
 
   // 构建WHERE条件
   std::ostringstream where_clause;
@@ -423,7 +442,7 @@ QueryManager::QueryAnomaly(const std::string &server_name,
                << "'";
   if (!server_name.empty())
   {
-    where_clause << " AND server_name='" << server_name << "'";
+    where_clause << " AND server_name='" << safe_name << "'";
   }
   where_clause << " AND (cpu_percent > " << thresholds.cpu_threshold
                << " OR mem_used_percent > " << thresholds.mem_threshold
@@ -766,11 +785,12 @@ QueryManager::QueryNetDetail(const std::string &server_name,
 
   std::string start_time = FormatTime(time_range.start_time);
   std::string end_time = FormatTime(time_range.end_time);
+  std::string safe_name = EscapeString(server_name);
 
   // 获取总数
   std::ostringstream count_sql;
   count_sql << "SELECT COUNT(*) FROM server_net_detail WHERE server_name='"
-            << server_name << "' AND timestamp BETWEEN '" << start_time
+            << safe_name << "' AND timestamp BETWEEN '" << start_time
             << "' AND '" << end_time << "'";
   if (total_count)
   {
@@ -784,7 +804,7 @@ QueryManager::QueryNetDetail(const std::string &server_name,
          "drop_in, drop_out, rcv_bytes_rate, snd_bytes_rate, "
          "rcv_packets_rate, snd_packets_rate "
          "FROM server_net_detail WHERE server_name='"
-      << server_name << "' AND timestamp BETWEEN '" << start_time << "' AND '"
+      << safe_name << "' AND timestamp BETWEEN '" << start_time << "' AND '"
       << end_time << "' ORDER BY timestamp DESC LIMIT " << page_size
       << " OFFSET " << offset;
 
@@ -865,11 +885,12 @@ QueryManager::QueryDiskDetail(const std::string &server_name,
 
   std::string start_time = FormatTime(time_range.start_time);
   std::string end_time = FormatTime(time_range.end_time);
+  std::string safe_name = EscapeString(server_name);
 
   // 获取总数
   std::ostringstream count_sql;
   count_sql << "SELECT COUNT(*) FROM server_disk_detail WHERE server_name='"
-            << server_name << "' AND timestamp BETWEEN '" << start_time
+            << safe_name << "' AND timestamp BETWEEN '" << start_time
             << "' AND '" << end_time << "'";
   if (total_count)
   {
@@ -883,7 +904,7 @@ QueryManager::QueryDiskDetail(const std::string &server_name,
          "write_bytes_per_sec, read_iops, write_iops, avg_read_latency_ms, "
          "avg_write_latency_ms, util_percent "
          "FROM server_disk_detail WHERE server_name='"
-      << server_name << "' AND timestamp BETWEEN '" << start_time << "' AND '"
+      << safe_name << "' AND timestamp BETWEEN '" << start_time << "' AND '"
       << end_time << "' ORDER BY timestamp DESC LIMIT " << page_size
       << " OFFSET " << offset;
 
@@ -962,11 +983,12 @@ QueryManager::QueryMemDetail(const std::string &server_name,
 
   std::string start_time = FormatTime(time_range.start_time);
   std::string end_time = FormatTime(time_range.end_time);
+  std::string safe_name = EscapeString(server_name);
 
   // 获取总数
   std::ostringstream count_sql;
   count_sql << "SELECT COUNT(*) FROM server_mem_detail WHERE server_name='"
-            << server_name << "' AND timestamp BETWEEN '" << start_time
+            << safe_name << "' AND timestamp BETWEEN '" << start_time
             << "' AND '" << end_time << "'";
   if (total_count)
   {
@@ -979,7 +1001,7 @@ QueryManager::QueryMemDetail(const std::string &server_name,
   sql << "SELECT server_name, timestamp, total, free, avail, buffers, "
          "cached, active, inactive, dirty "
          "FROM server_mem_detail WHERE server_name='"
-      << server_name << "' AND timestamp BETWEEN '" << start_time << "' AND '"
+      << safe_name << "' AND timestamp BETWEEN '" << start_time << "' AND '"
       << end_time << "' ORDER BY timestamp DESC LIMIT " << page_size
       << " OFFSET " << offset;
 
@@ -1059,11 +1081,12 @@ QueryManager::QuerySoftIrqDetail(const std::string &server_name,
 
   std::string start_time = FormatTime(time_range.start_time);
   std::string end_time = FormatTime(time_range.end_time);
+  std::string safe_name = EscapeString(server_name);
 
   // 获取总数
   std::ostringstream count_sql;
   count_sql << "SELECT COUNT(*) FROM server_softirq_detail WHERE server_name='"
-            << server_name << "' AND timestamp BETWEEN '" << start_time
+            << safe_name << "' AND timestamp BETWEEN '" << start_time
             << "' AND '" << end_time << "'";
   if (total_count)
   {
@@ -1076,7 +1099,7 @@ QueryManager::QuerySoftIrqDetail(const std::string &server_name,
   sql << "SELECT server_name, cpu_name, timestamp, hi, timer, net_tx, "
          "net_rx, block, sched "
          "FROM server_softirq_detail WHERE server_name='"
-      << server_name << "' AND timestamp BETWEEN '" << start_time << "' AND '"
+      << safe_name << "' AND timestamp BETWEEN '" << start_time << "' AND '"
       << end_time << "' ORDER BY timestamp DESC LIMIT " << page_size
       << " OFFSET " << offset;
 

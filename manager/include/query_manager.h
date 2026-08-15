@@ -251,6 +251,9 @@ namespace monitor
         // 执行查询并获取总数
         int GetTotalCount(const std::string &count_sql);
 
+        // 转义字符串防止 SQL 注入
+        std::string EscapeString(const std::string &input) const;
+
 #ifdef ENABLE_MYSQL
         MYSQL *conn_ = nullptr;
 #endif

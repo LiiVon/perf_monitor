@@ -1,6 +1,7 @@
 #pragma once
 
 #include "monitor_info.pb.h"
+#include "mysql_pool.h"
 #include <atomic>
 #include <chrono>
 #include <memory>
@@ -53,6 +54,9 @@ namespace monitor
         HostManager();
         ~HostManager();
 
+        // 设置 MySQL 连接池（由 main 初始化后传入）
+        void SetMysqlPool(MysqlPool *pool);
+
         // 启动后台处理线程
         void Start();
         void Stop();
@@ -98,6 +102,7 @@ namespace monitor
         std::mutex mtx_;
         std::atomic<bool> running_;
         std::unique_ptr<std::thread> thread_;
+        MysqlPool *mysql_pool_ = nullptr;  // 外部持有，HostManager 不负责释放
     };
 }
 

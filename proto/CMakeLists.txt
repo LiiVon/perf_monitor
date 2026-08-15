@@ -17,7 +17,7 @@ set(PROTO_FILES
     query_api.proto
 )
 
-# 生成 monitor_proto 静态库
+# 打包为静态库，Worker 和 Manager 都链接它
 add_library(monitor_proto ${PROTO_FILES})
 
 # 链接 Protobuf 和 gRPC（使用顶层已找到的库）
@@ -45,10 +45,10 @@ else()
     set(grpc_cpp_plugin_location ${GRPC_CPP_PLUGIN})
 endif()
 
-# 生成 .pb.h / .pb.cc
+# 生成 .pb.h / .pb.cc  （Protobuf 消息类）
 protobuf_generate(TARGET monitor_proto LANGUAGE cpp)
 
-# 生成 .grpc.pb.h / .grpc.pb.cc
+# 生成 .grpc.pb.h / .grpc.pb.cc  （gRPC 服务类）
 protobuf_generate(
     TARGET monitor_proto
     LANGUAGE grpc
