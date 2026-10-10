@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.19)
 project(monitor_UI LANGUAGES CXX)
 
 # 一次 find_package 包含所有需要的组件
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Network Charts)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Network)
 
 qt_standard_project_setup()
 
@@ -26,8 +26,11 @@ target_link_libraries(monitor_UI
         Qt::Core
         Qt::Widgets
         Qt::Network
-        Qt::Charts
 )
+
+if(WIN32)
+    target_link_libraries(monitor_UI PRIVATE dwmapi)
+endif()
 
 install(TARGETS monitor_UI
     BUNDLE  DESTINATION .
