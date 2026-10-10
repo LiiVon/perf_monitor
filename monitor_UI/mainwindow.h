@@ -2,8 +2,8 @@
 #define MAINWINDOW_H
 
 // ============================================================
-// 性能监控看板 v2 — shadcn/zinc 风格
-// 参考 front.md：左侧边栏导航 + 顶部标题栏 + 统计卡片 + 渐变趋势图
+// Perf Monitor — Observability × Geist minimalist desktop UI
+// Sidebar navigation, live metric cards, interactive charts and host tables
 // ============================================================
 
 #include <QMainWindow>
@@ -42,7 +42,7 @@ struct DataPoint {
 };
 
 // ------------------------------------------------------------
-// 自绘渐变面积趋势图（对应 front.md 的 AreaChartSVG）
+// 自绘渐变面积趋势图（蓝绿双序列、Y 轴刻度与交互提示）
 // 深色主线 + 灰色副线，纵向渐变填充，hover 显示数值
 // ------------------------------------------------------------
 class TrendAreaChart : public QWidget
@@ -117,10 +117,12 @@ private slots:
     void onHostSelected(int index);
     void onRangeChanged(int id);
     void onPageButton();
+    void toggleTheme();
 
 private:
     // ---- 构建 UI ----
-    void applyZincTheme();
+    void applyModernTheme();
+    void applyNativeTitleBarTheme();
     QWidget *buildSidebar();
     QWidget *buildHeader();
     QWidget *buildOverviewPage();
@@ -175,7 +177,9 @@ private:
     QLabel *statusLabel;
     QLabel *onlineBadge;
     QComboBox *hostSelector;
-    QPushButton *refreshBtn;
+    QPushButton *refreshBtn = nullptr;
+    QPushButton *themeToggleBtn = nullptr;
+    bool m_darkTheme = false;
 
     // 概览页
     StatCard *scoreCard;
