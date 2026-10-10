@@ -2,8 +2,8 @@
 #include "ui_mainwindow.h"
 
 // ============================================================
-// 性能监控看板 v2 — shadcn/zinc 风格
-// 布局：左侧边栏导航 + 顶部标题栏 + 统计卡片 + 渐变面积图 + 分页表格
+// 性能监控看板 — Modern Observability 风格
+// 布局：左侧导航 + 工具栏 + KPI 卡片 + 交互式趋势图 + 主机明细表
 // ============================================================
 
 #include <QPainter>
@@ -16,28 +16,119 @@
 #include <QJsonDocument>
 #include <QStyle>
 #include <QApplication>
+#include <QIcon>
+#include <QPixmap>
+#include <QSettings>
 
-// ---- zinc 色板 ----
+#ifdef Q_OS_WIN
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#include <dwmapi.h>
+#endif
+
+// ---- Theme tokens; updated atomically when the user switches appearance ----
 namespace zinc {
-static const QColor bg("#fafafa");        // zinc-50  页面背景
-static const QColor panel("#ffffff");     // 卡片背景
-static const QColor border("#e4e4e7");    // zinc-200 边框
-static const QColor text("#18181b");      // zinc-900 主文字
-static const QColor sub("#71717a");       // zinc-500 次文字
-static const QColor faint("#a1a1aa");     // zinc-400 弱化
-static const QColor hoverBg("#f4f4f5");   // zinc-100 悬停
-static const QColor emerald("#047857");   // 上涨徽章文字
-static const QColor emeraldBg("#d1fae5"); // 上涨徽章背景
-static const QColor red("#b91c1c");       // 下跌徽章文字
-static const QColor redBg("#fee2e2");     // 下跌徽章背景
+static QColor bg("#f7f8fa");
+static QColor panel("#ffffff");
+static QColor surface2("#f3f4f6");
+static QColor border("#e5e7eb");
+static QColor borderStrong("#d1d5db");
+static QColor text("#111827");
+static QColor sub("#6b7280");
+static QColor faint("#9ca3af");
+static QColor hoverBg("#f3f4f6");
+static QColor accent("#111827");
+static QColor accentHover("#374151");
+static QColor accentSoft("#f3f4f6");
+static QColor onAccent("#ffffff");
+static QColor emerald("#15803d");
+static QColor emeraldBg("#ecfdf3");
+static QColor red("#dc2626");
+static QColor redBg("#fef2f2");
+static QColor warning("#b45309");
+static QColor warningBg("#fffbeb");
+static QColor chartPrimary("#2563eb");
+static QColor chartSecondary("#0f9f91");
+static QColor chartGrid("#e9edf3");
+static QColor chartCursor("#94a3b8");
+static QColor tooltipBg("#ffffff");
+static QColor tooltipText("#111827");
+static QColor violet("#7c3aed");
+static QColor violetBg("#f5f3ff");
 } // namespace zinc
+
+namespace {
+
+QIcon makeNavIcon(const QString &pageId, const QColor &color)
+{
+    QPixmap canvas(20, 20);
+    canvas.fill(Qt::transparent);
+
+    QPainter painter(&canvas);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(QPen(color, 1.55, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    painter.setBrush(Qt::NoBrush);
+
+    if (pageId == QStringLiteral("overview")) {
+        painter.drawRoundedRect(QRectF(3, 3, 5.5, 5.5), 1.2, 1.2);
+        painter.drawRoundedRect(QRectF(11.5, 3, 5.5, 5.5), 1.2, 1.2);
+        painter.drawRoundedRect(QRectF(3, 11.5, 5.5, 5.5), 1.2, 1.2);
+        painter.drawRoundedRect(QRectF(11.5, 11.5, 5.5, 5.5), 1.2, 1.2);
+    } else if (pageId == QStringLiteral("cpu")) {
+        painter.drawRoundedRect(QRectF(5, 5, 10, 10), 2, 2);
+        painter.drawRoundedRect(QRectF(8, 8, 4, 4), 1, 1);
+        for (int i = 0; i < 4; ++i) {
+            const qreal offset = 6 + i * 2.7;
+            painter.drawLine(QPointF(offset, 2.3), QPointF(offset, 4.3));
+            painter.drawLine(QPointF(offset, 15.7), QPointF(offset, 17.7));
+            painter.drawLine(QPointF(2.3, offset), QPointF(4.3, offset));
+            painter.drawLine(QPointF(15.7, offset), QPointF(17.7, offset));
+        }
+    } else if (pageId == QStringLiteral("mem")) {
+        painter.drawRoundedRect(QRectF(3, 4, 14, 5), 1.3, 1.3);
+        painter.drawRoundedRect(QRectF(3, 11, 14, 5), 1.3, 1.3);
+        for (int x : {6, 10, 14}) {
+            painter.drawLine(QPointF(x, 5.3), QPointF(x, 7.7));
+            painter.drawLine(QPointF(x, 12.3), QPointF(x, 14.7));
+        }
+    } else if (pageId == QStringLiteral("net")) {
+        painter.drawLine(QPointF(3, 6.5), QPointF(16.5, 6.5));
+        painter.drawLine(QPointF(13.5, 3.8), QPointF(16.5, 6.5));
+        painter.drawLine(QPointF(13.5, 9.2), QPointF(16.5, 6.5));
+        painter.drawLine(QPointF(17, 13.5), QPointF(3.5, 13.5));
+        painter.drawLine(QPointF(6.5, 10.8), QPointF(3.5, 13.5));
+        painter.drawLine(QPointF(6.5, 16.2), QPointF(3.5, 13.5));
+    } else if (pageId == QStringLiteral("disk")) {
+        painter.drawEllipse(QRectF(4, 3, 12, 5));
+        painter.drawArc(QRectF(4, 5, 12, 5), 180 * 16, 180 * 16);
+        painter.drawArc(QRectF(4, 9, 12, 5), 180 * 16, 180 * 16);
+        painter.drawLine(QPointF(4, 5.5), QPointF(4, 13));
+        painter.drawLine(QPointF(16, 5.5), QPointF(16, 13));
+    } else {
+        QPainterPath pulse;
+        pulse.moveTo(2.5, 10.5);
+        pulse.lineTo(6, 10.5);
+        pulse.lineTo(8.4, 5);
+        pulse.lineTo(11.2, 15.2);
+        pulse.lineTo(13.7, 8.5);
+        pulse.lineTo(16, 10.5);
+        pulse.lineTo(18, 10.5);
+        painter.drawPath(pulse);
+    }
+
+    return QIcon(canvas);
+}
+
+} // namespace
 
 // ============================================================
 // TrendAreaChart —— 自绘渐变面积图
 // ============================================================
 TrendAreaChart::TrendAreaChart(QWidget *parent) : QWidget(parent)
 {
-    setMinimumHeight(180);
+    setMinimumHeight(190);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     setMouseTracking(true);
 }
@@ -73,7 +164,7 @@ void TrendAreaChart::paintEvent(QPaintEvent *)
     p.setRenderHint(QPainter::Antialiasing);
     p.fillRect(rect(), zinc::panel);
 
-    const int padL = 14, padR = 14, padT = 14, padB = 26;
+    const int padL = 46, padR = 18, padT = 24, padB = 30;
     int cw = width() - padL - padR;
     int ch = height() - padT - padB;
     if (cw <= 0 || ch <= 0) return;
@@ -86,7 +177,8 @@ void TrendAreaChart::paintEvent(QPaintEvent *)
     }
     if (pts.size() < 2 || !m_primary) {
         p.setPen(zinc::faint);
-        p.drawText(rect(), Qt::AlignCenter, QStringLiteral("等待数据…"));
+        p.setFont(QFont(font().family(), 11));
+        p.drawText(rect(), Qt::AlignCenter, QStringLiteral("正在等待主机数据…"));
         return;
     }
 
@@ -107,11 +199,20 @@ void TrendAreaChart::paintEvent(QPaintEvent *)
         return padT + ch - (v - yLo) / (yHi - yLo) * ch;
     };
 
-    // 网格线（5 条，低透明度）
-    p.setPen(QPen(QColor(24, 24, 27, 20), 1));
+    // 轻量网格 + Y 轴刻度，兼顾阅读性与画面留白
+    QFont tickFont = font();
+    tickFont.setPointSize(9);
+    p.setFont(tickFont);
     for (int f = 0; f <= 4; ++f) {
-        int y = padT + ch * f / 4;
+        const int y = padT + ch * f / 4;
+        p.setPen(QPen(zinc::chartGrid, 1));
         p.drawLine(padL, y, padL + cw, y);
+
+        const double tickValue = yHi - (yHi - yLo) * f / 4.0;
+        p.setPen(zinc::sub);
+        p.drawText(QRect(0, y - 9, padL - 10, 18),
+                   Qt::AlignRight | Qt::AlignVCenter,
+                   QString::number(tickValue, 'f', 0));
     }
 
     // 绘制一条序列：渐变面积 + 线
@@ -137,12 +238,14 @@ void TrendAreaChart::paintEvent(QPaintEvent *)
         p.drawPath(linePath);
     };
 
-    if (m_secondary) drawSeries(SeriesRole::Secondary, zinc::faint, 38, 1.5);
-    drawSeries(SeriesRole::Primary, QColor(24, 24, 27), 76, 2.0);
+    if (m_secondary) drawSeries(SeriesRole::Secondary, zinc::chartSecondary, 20, 1.8);
+    drawSeries(SeriesRole::Primary, zinc::chartPrimary, 24, 2.3);
 
     // X 轴时间标签（约 5 个）
-    p.setPen(zinc::faint);
-    p.setFont(font());
+    QFont timeFont = font();
+    timeFont.setPointSize(9);
+    p.setFont(timeFont);
+    p.setPen(zinc::sub);
     int step = qMax(1, pts.size() / 5);
     for (int i = 0; i < pts.size(); i += step) {
         QString t = QDateTime::fromSecsSinceEpoch(pts[i].timestamp).toString("hh:mm:ss");
@@ -155,12 +258,12 @@ void TrendAreaChart::paintEvent(QPaintEvent *)
         QFont f = font(); f.setPointSize(9);
         p.setFont(f);
         int lx = padL + cw - 150, ly = padT - 2;
-        p.setPen(QPen(QColor(24, 24, 27), 2));
+        p.setPen(QPen(zinc::chartPrimary, 2));
         p.drawLine(lx, ly + 6, lx + 14, ly + 6);
         p.setPen(zinc::sub);
         p.drawText(lx + 20, ly + 10, m_primaryName);
         if (m_secondary) {
-            p.setPen(QPen(zinc::faint, 2));
+            p.setPen(QPen(zinc::chartSecondary, 2));
             p.drawLine(lx + 80, ly + 6, lx + 94, ly + 6);
             p.setPen(zinc::sub);
             p.drawText(lx + 100, ly + 10, m_secondaryName);
@@ -170,8 +273,18 @@ void TrendAreaChart::paintEvent(QPaintEvent *)
     // hover 十字线与数值
     if (m_hoverIndex >= 0 && m_hoverIndex < pts.size()) {
         double hx = X(m_hoverIndex);
-        p.setPen(QPen(QColor(24, 24, 27, 90), 1, Qt::DashLine));
+        p.setPen(QPen(zinc::chartCursor, 1, Qt::DashLine));
         p.drawLine(hx, padT, hx, padT + ch);
+
+        const QPointF primaryPoint(hx, Y(valueAt(SeriesRole::Primary, pts[m_hoverIndex])));
+        p.setPen(QPen(QColor("#cbd5e4"), 2));
+        p.setBrush(zinc::chartPrimary);
+        p.drawEllipse(primaryPoint, 4.2, 4.2);
+        if (m_secondary) {
+            const QPointF secondaryPoint(hx, Y(valueAt(SeriesRole::Secondary, pts[m_hoverIndex])));
+            p.setBrush(zinc::chartSecondary);
+            p.drawEllipse(secondaryPoint, 3.7, 3.7);
+        }
 
         double v1 = valueAt(SeriesRole::Primary, pts[m_hoverIndex]);
         QString tip = QString("%1: %2").arg(m_primaryName).arg(v1, 0, 'f', 1);
@@ -196,7 +309,7 @@ void TrendAreaChart::paintEvent(QPaintEvent *)
 void TrendAreaChart::mouseMoveEvent(QMouseEvent *event)
 {
     if (!m_history || m_history->size() < 2) return;
-    const int padL = 14, padR = 14;
+    const int padL = 46, padR = 18;
     int cw = width() - padL - padR;
     int n = qMin(m_history->size(), m_maxPoints);
     double frac = (event->position().x() - padL) / qMax(1, cw);
@@ -216,16 +329,46 @@ void TrendAreaChart::leaveEvent(QEvent *)
 StatCard::StatCard(const QString &title, QWidget *parent) : QFrame(parent)
 {
     setProperty("class", "card");
+    setMinimumWidth(0);
+    setMinimumHeight(154);
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     auto *lay = new QVBoxLayout(this);
-    lay->setContentsMargins(20, 18, 20, 16);
+    lay->setContentsMargins(20, 19, 20, 17);
     lay->setSpacing(4);
 
     // 第一行：标题 + 趋势徽章
     auto *row = new QHBoxLayout();
+    auto *metricIcon = new QLabel(this);
+    metricIcon->setObjectName("metricIcon");
+    metricIcon->setFixedSize(30, 30);
+    metricIcon->setAlignment(Qt::AlignCenter);
+
+    QString icon = QStringLiteral("·");
+    QString tone = QStringLiteral("blue");
+    if (title.contains(QStringLiteral("健康"))) {
+        icon = QStringLiteral("✓");
+        tone = QStringLiteral("green");
+    } else if (title.contains(QStringLiteral("CPU"))) {
+        icon = QStringLiteral("⌁");
+        tone = QStringLiteral("blue");
+    } else if (title.contains(QStringLiteral("内存"))) {
+        icon = QStringLiteral("▦");
+        tone = QStringLiteral("violet");
+    } else {
+        icon = QStringLiteral("↗");
+        tone = QStringLiteral("amber");
+    }
+    metricIcon->setText(icon);
+    metricIcon->setProperty("tone", tone);
+
     m_title = new QLabel(title, this);
     m_title->setObjectName("cardTitle");
+    m_title->setMinimumWidth(0);
+    m_title->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     m_badge = new QLabel(this);
     m_badge->setObjectName("badge");
+    row->addWidget(metricIcon);
+    row->addSpacing(9);
     row->addWidget(m_title);
     row->addStretch();
     row->addWidget(m_badge);
@@ -234,13 +377,21 @@ StatCard::StatCard(const QString &title, QWidget *parent) : QFrame(parent)
     // 大数值
     m_value = new QLabel("--", this);
     m_value->setObjectName("cardValue");
+    m_value->setMinimumWidth(0);
+    m_value->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     lay->addWidget(m_value);
 
     // 底部说明
     m_footer = new QLabel(this);
     m_footer->setObjectName("cardFooter");
+    m_footer->setMinimumWidth(0);
+    m_footer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    m_footer->setWordWrap(true);
     m_detail = new QLabel(this);
     m_detail->setObjectName("cardDetail");
+    m_detail->setMinimumWidth(0);
+    m_detail->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    m_detail->setWordWrap(true);
     lay->addSpacing(8);
     lay->addWidget(m_footer);
     lay->addWidget(m_detail);
@@ -250,12 +401,17 @@ void StatCard::updateValue(const QString &value, const QString &badge,
                            bool trendUp, const QString &footer, const QString &detail)
 {
     m_value->setText(value);
-    m_badge->setText((trendUp ? QStringLiteral("▲ ") : QStringLiteral("▼ ")) + badge);
+    const bool neutral = badge == QStringLiteral("--");
+    m_badge->setText(neutral ? badge :
+        (trendUp ? QStringLiteral("↗ ") : QStringLiteral("↘ ")) + badge);
+    const QColor badgeBg = neutral ? zinc::surface2
+                                   : (trendUp ? zinc::emeraldBg : zinc::redBg);
+    const QColor badgeFg = neutral ? zinc::sub
+                                   : (trendUp ? zinc::emerald : zinc::red);
     m_badge->setStyleSheet(QString(
-        "QLabel{background:%1;color:%2;border-radius:9px;padding:2px 8px;"
-        "font-size:11px;font-weight:bold;}")
-        .arg(trendUp ? zinc::emeraldBg.name() : zinc::redBg.name(),
-             trendUp ? zinc::emerald.name() : zinc::red.name()));
+        "QLabel{background:%1;color:%2;border-radius:8px;padding:3px 8px;"
+        "font-size:10px;font-weight:650;}")
+        .arg(badgeBg.name(), badgeFg.name()));
     m_footer->setText(footer);
     m_detail->setText(detail);
 }
@@ -266,19 +422,26 @@ void StatCard::updateValue(const QString &value, const QString &badge,
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 {
-    setWindowTitle(QStringLiteral("系统性能监控看板"));
-    resize(1280, 800);
+    setWindowTitle(QStringLiteral("Perf Monitor | Server Observability"));
+    QSettings settings(QStringLiteral("LiiVon"), QStringLiteral("PerfMonitor"));
+    m_darkTheme = settings.value(QStringLiteral("appearance/darkTheme"), false).toBool();
+    resize(1440, 900);
+    setMinimumSize(820, 580);
 
-    applyZincTheme();
+    applyModernTheme();
 
     // ---- 根布局：侧边栏 + 主区域 ----
     auto *central = new QWidget(this);
     auto *root = new QHBoxLayout(central);
+    central->setObjectName("appRoot");
     root->setContentsMargins(0, 0, 0, 0);
     root->setSpacing(0);
     root->addWidget(buildSidebar());
 
     auto *mainCol = new QWidget(central);
+    mainCol->setObjectName("mainContent");
+    mainCol->setMinimumWidth(0);
+    mainCol->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     auto *mainLay = new QVBoxLayout(mainCol);
     mainLay->setContentsMargins(0, 0, 0, 0);
     mainLay->setSpacing(0);
@@ -286,6 +449,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     pages = new QStackedWidget(mainCol);
     pages->setObjectName("pageStack");
+    pages->setMinimumWidth(0);
+    pages->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     mainLay->addWidget(pages, 1);
     root->addWidget(mainCol, 1);
     setCentralWidget(central);
@@ -298,6 +463,7 @@ MainWindow::MainWindow(QWidget *parent)
     pageIndex["disk"] = pages->addWidget(buildDiskPage());
     pageIndex["softirq"] = pages->addWidget(buildSoftIrqPage());
     gotoPage("overview");
+    applyModernTheme(); // Re-apply now that all theme-aware controls exist.
 
     // ---- 网络 ----
     networkManager = new QNetworkAccessManager(this);
@@ -315,126 +481,309 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow() { delete ui; }
 
 // ============================================================
-// zinc 主题样式
+// Modern Observability 主题样式
 // ============================================================
-void MainWindow::applyZincTheme()
+void MainWindow::applyModernTheme()
 {
-    setStyleSheet(QStringLiteral(R"(
-        * { font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif; }
-        QMainWindow, QWidget { background: %1; color: %2; font-size: 13px; }
+    // Geist-inspired neutral surfaces; data series remain distinguishable and accessible.
+    if (m_darkTheme) {
+        zinc::bg = QColor("#0b0d11");
+        zinc::panel = QColor("#11151b");
+        zinc::surface2 = QColor("#171c24");
+        zinc::border = QColor("#252b35");
+        zinc::borderStrong = QColor("#343c49");
+        zinc::text = QColor("#eceff4");
+        zinc::sub = QColor("#9ba4b2");
+        zinc::faint = QColor("#6d7787");
+        zinc::hoverBg = QColor("#1c232e");
+        zinc::accent = QColor("#e8ebf0");
+        zinc::accentHover = QColor("#ffffff");
+        zinc::accentSoft = QColor("#222a36");
+        zinc::onAccent = QColor("#11151b");
+        zinc::emerald = QColor("#4ade80");
+        zinc::emeraldBg = QColor("#173326");
+        zinc::red = QColor("#fb7185");
+        zinc::redBg = QColor("#3b2028");
+        zinc::warning = QColor("#fbbf24");
+        zinc::warningBg = QColor("#392f1b");
+        zinc::chartPrimary = QColor("#8ea2ff");
+        zinc::chartSecondary = QColor("#45d6c2");
+        zinc::chartGrid = QColor("#29313d");
+        zinc::chartCursor = QColor("#68778f");
+        zinc::tooltipBg = QColor("#171d26");
+        zinc::tooltipText = QColor("#eceff4");
+        zinc::violet = QColor("#c4a7ff");
+        zinc::violetBg = QColor("#302640");
+    } else {
+        zinc::bg = QColor("#f7f8fa");
+        zinc::panel = QColor("#ffffff");
+        zinc::surface2 = QColor("#f3f4f6");
+        zinc::border = QColor("#e5e7eb");
+        zinc::borderStrong = QColor("#d1d5db");
+        zinc::text = QColor("#111827");
+        zinc::sub = QColor("#6b7280");
+        zinc::faint = QColor("#9ca3af");
+        zinc::hoverBg = QColor("#f3f4f6");
+        zinc::accent = QColor("#111827");
+        zinc::accentHover = QColor("#374151");
+        zinc::accentSoft = QColor("#f3f4f6");
+        zinc::onAccent = QColor("#ffffff");
+        zinc::emerald = QColor("#15803d");
+        zinc::emeraldBg = QColor("#ecfdf3");
+        zinc::red = QColor("#dc2626");
+        zinc::redBg = QColor("#fef2f2");
+        zinc::warning = QColor("#b45309");
+        zinc::warningBg = QColor("#fffbeb");
+        zinc::chartPrimary = QColor("#2563eb");
+        zinc::chartSecondary = QColor("#0f9f91");
+        zinc::chartGrid = QColor("#e9edf3");
+        zinc::chartCursor = QColor("#94a3b8");
+        zinc::tooltipBg = QColor("#ffffff");
+        zinc::tooltipText = QColor("#111827");
+        zinc::violet = QColor("#7c3aed");
+        zinc::violetBg = QColor("#f5f3ff");
+    }
 
-        /* ---- 侧边栏 ---- */
-        QFrame#sidebar { background: %1; border-right: 1px solid %3; }
-        QLabel#brandTitle { font-size: 13px; font-weight: bold; color: %2; }
-        QLabel#sectionLabel { font-size: 11px; font-weight: bold; color: %5;
-                              letter-spacing: 1px; padding-left: 10px; }
+    QString css = QStringLiteral(R"THEME(
+        * { font-family: "Inter", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", sans-serif; }
+        QMainWindow { background: @@BG@@; }
+        QWidget {
+            color: @@TEXT@@; font-size: 13px; background: transparent;
+            selection-background-color: @@ACCENT_SOFT@@; selection-color: @@TEXT@@;
+        }
+        QWidget#appRoot, QWidget#mainContent, QStackedWidget#pageStack,
+        QWidget#pageContent, QScrollArea, QAbstractScrollArea { background: @@BG@@; }
+        QScrollArea { border: none; }
+        QScrollArea QWidget { background: transparent; }
+
+        /* Sidebar */
+        QFrame#sidebar { background: @@SIDEBAR@@; border-right: 1px solid @@BORDER@@; }
+        QLabel#brandMark {
+            background: @@ACCENT@@; color: @@ON_ACCENT@@; border-radius: 8px;
+            font-size: 13px; font-weight: 800;
+        }
+        QLabel#brandTitle { font-size: 14px; font-weight: 700; color: @@TEXT@@; }
+        QLabel#sectionLabel {
+            color: @@FAINT@@; font-size: 10px; font-weight: 700;
+            letter-spacing: 1.3px; padding: 12px 10px 7px 10px;
+        }
         QPushButton[class="navBtn"] {
-            background: transparent; color: #52525b; text-align: left;
-            border: none; border-radius: 6px; padding: 8px 12px; font-size: 13px;
+            background: transparent; color: @@MUTED@@; text-align: left;
+            border: 1px solid transparent; border-left: 3px solid transparent;
+            border-radius: 8px; padding: 9px 12px; font-size: 13px;
+            font-weight: 500; min-height: 20px; spacing: 11px;
         }
-        QPushButton[class="navBtn"]:hover { background: %6; color: %2; }
-        QPushButton[class="navBtn"][active="true"] { background: %2; color: white; }
-        QLabel#userAvatar { background: #d4d4d8; color: #3f3f46; border-radius: 15px;
-                            font-size: 11px; font-weight: bold; }
-        QLabel#userName { font-size: 13px; font-weight: bold; color: %2; }
-        QLabel#userMail { font-size: 11px; color: %5; }
+        QPushButton[class="navBtn"]:hover {
+            background: @@HOVER@@; color: @@TEXT@@;
+        }
+        QPushButton[class="navBtn"][active="true"] {
+            background: @@ACCENT_SOFT@@; color: @@TEXT@@; font-weight: 650;
+            border-left: 3px solid @@ACCENT@@; padding-left: 9px;
+        }
+        QLabel#userAvatar {
+            background: @@ACCENT_SOFT@@; color: @@TEXT@@; border-radius: 16px;
+            font-size: 10px; font-weight: 700;
+        }
+        QLabel#userName { color: @@TEXT@@; font-size: 12px; font-weight: 650; }
+        QLabel#userMail { color: @@MUTED@@; font-size: 10px; }
 
-        /* ---- 顶部栏 ---- */
-        QFrame#header { background: %7; border-bottom: 1px solid %3; }
-        QPushButton#menuBtn { background: transparent; border: none; border-radius: 6px;
-                              padding: 6px 10px; font-size: 15px; color: #52525b; }
-        QPushButton#menuBtn:hover { background: %6; }
-        QLabel#pageTitle { font-size: 13px; font-weight: bold; color: %2; }
-        QLabel#statusDot { border-radius: 4px; min-width: 8px; max-width: 8px;
-                           min-height: 8px; max-height: 8px; background: #d4d4d8; }
-        QLabel#statusLabel { font-size: 12px; color: %5; }
-        QLabel#onlineBadge { background: %8; color: %9; border-radius: 10px;
-                             padding: 3px 10px; font-size: 11px; font-weight: bold; }
-        QComboBox#hostSelector {
-            background: white; border: 1px solid %3; border-radius: 6px;
-            padding: 5px 10px; color: %2; min-width: 140px;
+        /* Header / tools */
+        QFrame#header { background: @@PANEL@@; border-bottom: 1px solid @@BORDER@@; }
+        QFrame#headerSeparator { color: @@BORDER_STRONG@@; }
+        QPushButton#menuBtn, QPushButton#themeToggleBtn {
+            color: @@MUTED@@; background: transparent; border: 1px solid transparent;
+            border-radius: 8px; padding: 7px 10px; font-size: 12px; font-weight: 550;
         }
-        QComboBox#hostSelector:hover { border-color: %5; }
-        QComboBox#hostSelector::drop-down { border: none; width: 18px; }
+        QPushButton#menuBtn:hover, QPushButton#themeToggleBtn:hover {
+            background: @@HOVER@@; color: @@TEXT@@;
+        }
+        QLabel#pageTitle { color: @@TEXT@@; font-size: 13px; font-weight: 650; }
+        QLabel#statusDot {
+            border-radius: 4px; min-width: 7px; max-width: 7px;
+            min-height: 7px; max-height: 7px; background: @@FAINT@@;
+        }
+        QLabel#statusLabel { color: @@MUTED@@; font-size: 11px; }
+        QLabel#onlineBadge {
+            color: @@SUCCESS@@; background: @@SUCCESS_BG@@; border: 1px solid @@SUCCESS_BORDER@@;
+            border-radius: 8px; padding: 6px 10px; font-size: 11px; font-weight: 650;
+        }
+        QComboBox#hostSelector {
+            background: @@PANEL@@; border: 1px solid @@BORDER@@; border-radius: 8px;
+            padding: 8px 11px; color: @@TEXT@@; min-width: 150px;
+        }
+        QComboBox#hostSelector:hover { border-color: @@BORDER_STRONG@@; }
+        QComboBox#hostSelector:focus { border: 1px solid @@ACCENT@@; }
+        QComboBox#hostSelector::drop-down { border: none; width: 22px; }
         QComboBox#hostSelector::down-arrow {
             image: none; border-left: 4px solid transparent;
-            border-right: 4px solid transparent; border-top: 5px solid %5;
+            border-right: 4px solid transparent; border-top: 5px solid @@MUTED@@;
             margin-right: 8px;
         }
         QComboBox#hostSelector QAbstractItemView {
-            background: white; border: 1px solid %3; color: %2;
-            selection-background-color: %2; selection-color: white;
+            background: @@PANEL@@; border: 1px solid @@BORDER@@; color: @@TEXT@@;
+            selection-background-color: @@ACCENT_SOFT@@; selection-color: @@TEXT@@;
+            outline: none; padding: 4px;
         }
         QPushButton#refreshBtn {
-            background: %2; color: white; border: none; border-radius: 6px;
-            padding: 6px 16px; font-weight: bold;
+            background: @@ACCENT@@; color: @@ON_ACCENT@@; border: 1px solid @@ACCENT@@;
+            border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 650;
         }
-        QPushButton#refreshBtn:hover { background: #3f3f46; }
+        QPushButton#refreshBtn:hover { background: @@ACCENT_HOVER@@; border-color: @@ACCENT_HOVER@@; }
+        QPushButton#refreshBtn:pressed { background: @@ACCENT@@; }
 
-        /* ---- 卡片 ---- */
-        QFrame[class="card"] { background: %7; border: 1px solid %3; border-radius: 12px; }
-        QLabel#cardTitle { font-size: 13px; color: %5; background: transparent; }
-        QLabel#cardValue { font-size: 26px; font-weight: bold; color: %2;
-                           background: transparent; }
-        QLabel#cardFooter { font-size: 12px; font-weight: bold; color: #3f3f46;
-                            background: transparent; }
-        QLabel#cardDetail { font-size: 12px; color: %5; background: transparent; }
-        QLabel#chartTitle { font-size: 14px; font-weight: bold; color: %2;
-                            background: transparent; }
-        QLabel#chartSubtitle { font-size: 12px; color: %5; background: transparent; }
+        /* Metric and chart cards */
+        QFrame[class="card"] {
+            background: @@PANEL@@; border: 1px solid @@BORDER@@; border-radius: 12px;
+        }
+        QFrame[class="card"]:hover { border-color: @@BORDER_STRONG@@; }
+        QLabel#metricIcon { border-radius: 8px; border: none; font-size: 13px; font-weight: 700; }
+        QLabel#metricIcon[tone="green"] { background: @@SUCCESS_BG@@; color: @@SUCCESS@@; }
+        QLabel#metricIcon[tone="blue"] { background: @@BLUE_BG@@; color: @@BLUE@@; }
+        QLabel#metricIcon[tone="violet"] { background: @@VIOLET_BG@@; color: @@VIOLET@@; }
+        QLabel#metricIcon[tone="amber"] { background: @@WARNING_BG@@; color: @@WARNING@@; }
+        QLabel#cardTitle { font-size: 12px; font-weight: 550; color: @@MUTED@@; background: transparent; }
+        QLabel#cardValue { font-size: 29px; font-weight: 720; color: @@TEXT@@; background: transparent; }
+        QLabel#cardFooter { font-size: 11px; font-weight: 600; color: @@TEXT@@; background: transparent; }
+        QLabel#cardDetail { font-size: 11px; color: @@MUTED@@; background: transparent; }
+        QLabel#chartTitle { font-size: 13px; font-weight: 680; color: @@TEXT@@; background: transparent; }
+        QLabel#chartSubtitle { font-size: 11px; color: @@MUTED@@; background: transparent; }
+        QLabel#dashboardHeading { font-size: 23px; font-weight: 750; color: @@TEXT@@; background: transparent; }
+        QLabel#dashboardSubtitle { font-size: 12px; color: @@MUTED@@; background: transparent; }
+        QLabel#dashboardLive {
+            color: @@SUCCESS@@; background: @@SUCCESS_BG@@; border: 1px solid @@SUCCESS_BORDER@@;
+            border-radius: 8px; padding: 6px 10px; font-size: 11px; font-weight: 650;
+        }
 
-        /* ---- 分段按钮（时间范围） ---- */
-        QFrame#segmentBox { background: white; border: 1px solid %3; border-radius: 8px; }
+        /* Chart range switch */
+        QFrame#segmentBox { background: @@SURFACE2@@; border: 1px solid @@BORDER@@; border-radius: 8px; }
         QPushButton[class="segBtn"] {
-            background: transparent; border: none; border-radius: 6px;
-            padding: 5px 12px; font-size: 12px; color: #52525b;
+            background: transparent; color: @@MUTED@@; border: 1px solid transparent;
+            border-radius: 6px; padding: 5px 10px; font-size: 11px;
         }
-        QPushButton[class="segBtn"]:hover { background: %6; }
-        QPushButton[class="segBtn"][active="true"] { background: %2; color: white; }
+        QPushButton[class="segBtn"]:hover { background: @@HOVER@@; color: @@TEXT@@; }
+        QPushButton[class="segBtn"][active="true"] {
+            background: @@PANEL@@; color: @@TEXT@@; font-weight: 650; border: 1px solid @@BORDER@@;
+        }
 
-        /* ---- 表格 ---- */
+        /* Dense metric tables */
         QTableWidget {
-            background: %7; alternate-background-color: #fafafa;
-            border: none; gridline-color: #f4f4f5; color: %2; font-size: 13px;
+            background: @@PANEL@@; alternate-background-color: @@ROW_ALT@@;
+            border: none; gridline-color: @@GRID@@; color: @@TEXT@@; font-size: 12px;
+            selection-background-color: @@ACCENT_SOFT@@; selection-color: @@TEXT@@;
+            outline: none;
         }
         QHeaderView::section {
-            background: %7; color: %5; border: none;
-            border-bottom: 1px solid %3; padding: 10px 14px; font-weight: normal;
+            background: @@TABLE_HEADER@@; color: @@MUTED@@; border: none;
+            border-bottom: 1px solid @@BORDER@@; padding: 10px 12px;
+            font-weight: 650; font-size: 11px;
         }
-        QTableWidget::item { padding: 4px 14px; border: none; }
-        QTableWidget::item:selected { background: %6; color: %2; }
+        QTableWidget::item { padding: 5px 12px; border: none; }
+        QTableWidget::item:hover { background: @@HOVER@@; }
+        QTableWidget::item:selected { background: @@ACCENT_SOFT@@; color: @@TEXT@@; }
+        QTableWidget QTableCornerButton::section { background: @@TABLE_HEADER@@; border: none; }
 
-        /* ---- 分页按钮 ---- */
-        QPushButton[class="pageBtn"] {
-            background: transparent; border: none; border-radius: 6px;
-            padding: 5px 9px; color: #52525b; font-size: 14px;
-        }
-        QPushButton[class="pageBtn"]:hover { background: %6; }
-        QPushButton[class="pageBtn"]:disabled { color: #d4d4d8; }
-        QLabel#pageInfo { font-size: 12px; color: %5; background: transparent; }
-
-        /* ---- 滚动条 ---- */
-        QScrollBar:vertical { background: transparent; width: 8px; margin: 0; }
-        QScrollBar::handle:vertical { background: #d4d4d8; border-radius: 4px; min-height: 30px; }
-        QScrollBar::handle:vertical:hover { background: %5; }
+        /* Scrollbars / tooltips */
+        QScrollBar:vertical { background: transparent; width: 8px; margin: 4px 1px; }
+        QScrollBar::handle:vertical { background: @@SCROLL@@; border-radius: 4px; min-height: 28px; }
+        QScrollBar::handle:vertical:hover { background: @@BORDER_STRONG@@; }
         QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
-        QScrollBar:horizontal { background: transparent; height: 8px; margin: 0; }
-        QScrollBar::handle:horizontal { background: #d4d4d8; border-radius: 4px; min-width: 30px; }
+        QScrollBar:horizontal { background: transparent; height: 8px; margin: 1px 4px; }
+        QScrollBar::handle:horizontal { background: @@SCROLL@@; border-radius: 4px; min-width: 28px; }
         QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0; }
+        QToolTip {
+            background: @@TOOLTIP_BG@@; color: @@TOOLTIP_TEXT@@;
+            border: 1px solid @@BORDER_STRONG@@; padding: 6px 8px;
+        }
+    )THEME");
 
-        QScrollArea { border: none; background: %1; }
-    )")
-        .arg(zinc::bg.name(), zinc::text.name(), zinc::border.name(),
-             QString(), zinc::sub.name(), zinc::hoverBg.name(),
-             zinc::panel.name(), zinc::emeraldBg.name(), zinc::emerald.name()));
+    const QMap<QString, QString> tokens = {
+        {"@@BG@@", zinc::bg.name()}, {"@@PANEL@@", zinc::panel.name()},
+        {"@@SURFACE2@@", zinc::surface2.name()}, {"@@BORDER@@", zinc::border.name()},
+        {"@@BORDER_STRONG@@", zinc::borderStrong.name()}, {"@@TEXT@@", zinc::text.name()},
+        {"@@MUTED@@", zinc::sub.name()}, {"@@FAINT@@", zinc::faint.name()},
+        {"@@HOVER@@", zinc::hoverBg.name()}, {"@@ACCENT@@", zinc::accent.name()},
+        {"@@ACCENT_HOVER@@", zinc::accentHover.name()}, {"@@ACCENT_SOFT@@", zinc::accentSoft.name()},
+        {"@@ON_ACCENT@@", zinc::onAccent.name()}, {"@@SUCCESS@@", zinc::emerald.name()},
+        {"@@SUCCESS_BG@@", zinc::emeraldBg.name()}, {"@@SUCCESS_BORDER@@", m_darkTheme ? "#2b4b39" : "#ccebd7"},
+        {"@@DANGER@@", zinc::red.name()}, {"@@DANGER_BG@@", zinc::redBg.name()},
+        {"@@WARNING@@", zinc::warning.name()}, {"@@WARNING_BG@@", zinc::warningBg.name()},
+        {"@@BLUE@@", m_darkTheme ? "#9db0ff" : "#2563eb"},
+        {"@@BLUE_BG@@", m_darkTheme ? "#222a43" : "#eff6ff"},
+        {"@@VIOLET@@", zinc::violet.name()}, {"@@VIOLET_BG@@", zinc::violetBg.name()},
+        {"@@SIDEBAR@@", m_darkTheme ? "#0e1117" : "#ffffff"},
+        {"@@TABLE_HEADER@@", m_darkTheme ? "#151a22" : "#f9fafb"},
+        {"@@ROW_ALT@@", m_darkTheme ? "#131820" : "#fcfcfd"},
+        {"@@GRID@@", zinc::chartGrid.name()}, {"@@SCROLL@@", m_darkTheme ? "#343d4b" : "#d1d5db"},
+        {"@@TOOLTIP_BG@@", zinc::tooltipBg.name()}, {"@@TOOLTIP_TEXT@@", zinc::tooltipText.name()}
+    };
+    for (auto it = tokens.cbegin(); it != tokens.cend(); ++it)
+        css.replace(it.key(), it.value());
+
+    setStyleSheet(css);
+
+    if (themeToggleBtn) {
+        themeToggleBtn->setText(m_darkTheme ? QStringLiteral("☼ 浅色") : QStringLiteral("◐ 深色"));
+        themeToggleBtn->setToolTip(m_darkTheme
+            ? QStringLiteral("切换到浅色主题") : QStringLiteral("切换到深色主题"));
+    }
+
+    for (auto it = navButtons.begin(); it != navButtons.end(); ++it) {
+        const bool active = it.value()->property("active").toBool();
+        it.value()->setIcon(makeNavIcon(it.key(), active ? zinc::accent : zinc::sub));
+    }
+
+    applyNativeTitleBarTheme();
 }
 
+void MainWindow::applyNativeTitleBarTheme()
+{
+#ifdef Q_OS_WIN
+    // The Windows caption is a non-client area, so Qt style sheets cannot recolor it.
+    // DWM dark-mode support is available on modern Windows 10/11 builds.
+    const HWND hwnd = reinterpret_cast<HWND>(winId());
+    const BOOL useDarkMode = m_darkTheme ? TRUE : FALSE;
+
+    constexpr DWORD useImmersiveDarkMode = 20; // Windows 11 / current Windows 10
+    const HRESULT darkModeResult = DwmSetWindowAttribute(
+        hwnd, useImmersiveDarkMode, &useDarkMode, sizeof(useDarkMode));
+
+    if (FAILED(darkModeResult)) {
+        // Older Windows 10 builds used attribute 19.
+        constexpr DWORD legacyUseImmersiveDarkMode = 19;
+        DwmSetWindowAttribute(
+            hwnd, legacyUseImmersiveDarkMode, &useDarkMode, sizeof(useDarkMode));
+    }
+
+    // Apply explicit caption and frame colors where supported (Windows 11).
+    // Unsupported attributes are intentionally ignored for older Windows versions.
+    const COLORREF captionColor = m_darkTheme
+        ? RGB(17, 21, 27)      // #11151b
+        : RGB(247, 248, 250);  // #f7f8fa
+    const COLORREF titleTextColor = m_darkTheme
+        ? RGB(236, 239, 244)   // #eceff4
+        : RGB(17, 24, 39);     // #111827
+    const COLORREF frameColor = m_darkTheme
+        ? RGB(37, 43, 53)      // #252b35
+        : RGB(229, 231, 235);  // #e5e7eb
+
+    constexpr DWORD borderColorAttribute = 34;
+    constexpr DWORD captionColorAttribute = 35;
+    constexpr DWORD textColorAttribute = 36;
+    DwmSetWindowAttribute(hwnd, captionColorAttribute, &captionColor, sizeof(captionColor));
+    DwmSetWindowAttribute(hwnd, textColorAttribute, &titleTextColor, sizeof(titleTextColor));
+    DwmSetWindowAttribute(hwnd, borderColorAttribute, &frameColor, sizeof(frameColor));
+#endif
+}
+
+
 // ============================================================
-// 侧边栏
+// Sidebar
 // ============================================================
 QPushButton *MainWindow::addNavItem(const QString &title, const QString &pageId)
 {
     auto *btn = new QPushButton(title, sidebar);
+    btn->setIcon(makeNavIcon(pageId, zinc::sub));
+    btn->setIconSize(QSize(18, 18));
     btn->setProperty("class", "navBtn");
     btn->setCursor(Qt::PointingHandCursor);
     btn->setCheckable(true);
@@ -448,48 +797,51 @@ QWidget *MainWindow::buildSidebar()
 {
     sidebar = new QFrame(this);
     sidebar->setObjectName("sidebar");
-    sidebar->setFixedWidth(220);
+    sidebar->setFixedWidth(236);
     auto *lay = new QVBoxLayout(sidebar);
-    lay->setContentsMargins(12, 0, 12, 12);
-    lay->setSpacing(4);
+    lay->setContentsMargins(14, 8, 14, 14);
+    lay->setSpacing(5);
 
     // 品牌区
     auto *brandRow = new QHBoxLayout();
     auto *logo = new QLabel(sidebar);
-    logo->setFixedSize(20, 20);
-    logo->setStyleSheet("background:#18181b;border-radius:5px;");
+    logo->setFixedSize(28, 28);
+    logo->setObjectName("brandMark");
+    logo->setText(QStringLiteral("P"));
+    logo->setAlignment(Qt::AlignCenter);
     auto *brandTitle = new QLabel(QStringLiteral("Perf Monitor"), sidebar);
     brandTitle->setObjectName("brandTitle");
     brandRow->addWidget(logo);
+    brandRow->addSpacing(10);
     brandRow->addWidget(brandTitle);
     brandRow->addStretch();
     auto *brandWrap = new QWidget(sidebar);
-    brandWrap->setFixedHeight(48);
+    brandWrap->setFixedHeight(58);
     brandWrap->setLayout(brandRow);
     brandWrap->setStyleSheet("background:transparent;");
     lay->addWidget(brandWrap);
 
-    // 主导航
-    navGroup = new QButtonGroup(this);
-    lay->addWidget(addNavItem(QStringLiteral("◻  总览"), "overview"));
-    lay->addWidget(addNavItem(QStringLiteral("▤  CPU"), "cpu"));
-    lay->addWidget(addNavItem(QStringLiteral("◧  内存"), "mem"));
-    lay->addWidget(addNavItem(QStringLiteral("⇄  网络"), "net"));
-    lay->addWidget(addNavItem(QStringLiteral("▣  磁盘"), "disk"));
-    lay->addWidget(addNavItem(QStringLiteral("⚡  软中断"), "softirq"));
+    // Main navigation: custom line icons keep the sidebar quiet and consistent.
+    auto *section = new QLabel(QStringLiteral("MONITORING"), sidebar);
+    section->setObjectName("sectionLabel");
+    lay->addWidget(section);
 
-    // 分组标题
-    lay->addSpacing(18);
-    auto *secLabel = new QLabel(QStringLiteral("DETAILS"), sidebar);
-    secLabel->setObjectName("sectionLabel");
-    lay->addWidget(secLabel);
+    navGroup = new QButtonGroup(this);
+    navGroup->setExclusive(true);
+    lay->addWidget(addNavItem(QStringLiteral("总览"), "overview"));
+    lay->addWidget(addNavItem(QStringLiteral("CPU 核心"), "cpu"));
+    lay->addWidget(addNavItem(QStringLiteral("内存"), "mem"));
+    lay->addWidget(addNavItem(QStringLiteral("网络"), "net"));
+    lay->addWidget(addNavItem(QStringLiteral("磁盘"), "disk"));
+    lay->addWidget(addNavItem(QStringLiteral("软中断"), "softirq"));
+
     lay->addStretch();
 
     // 底部用户区
     auto *userRow = new QHBoxLayout();
     auto *avatar = new QLabel("PM", sidebar);
     avatar->setObjectName("userAvatar");
-    avatar->setFixedSize(30, 30);
+    avatar->setFixedSize(32, 32);
     avatar->setAlignment(Qt::AlignCenter);
     auto *userCol = new QVBoxLayout();
     auto *userName = new QLabel(QStringLiteral("监控中心"), sidebar);
@@ -513,20 +865,21 @@ QWidget *MainWindow::buildHeader()
 {
     auto *header = new QFrame(this);
     header->setObjectName("header");
-    header->setFixedHeight(48);
+    header->setFixedHeight(62);
     auto *lay = new QHBoxLayout(header);
-    lay->setContentsMargins(16, 0, 16, 0);
-    lay->setSpacing(8);
+    lay->setContentsMargins(22, 0, 24, 0);
+    lay->setSpacing(10);
 
     menuBtn = new QPushButton(QStringLiteral("☰"), header);
     menuBtn->setObjectName("menuBtn");
+    menuBtn->setFixedSize(36, 36);
     connect(menuBtn, &QPushButton::clicked, this,
             [this] { sidebar->setVisible(!sidebar->isVisible()); });
     lay->addWidget(menuBtn);
 
     auto *sep = new QFrame(header);
+    sep->setObjectName("headerSeparator");
     sep->setFrameShape(QFrame::VLine);
-    sep->setStyleSheet("color:#e4e4e7;");
     sep->setFixedHeight(16);
     lay->addWidget(sep);
 
@@ -550,12 +903,21 @@ QWidget *MainWindow::buildHeader()
 
     hostSelector = new QComboBox(header);
     hostSelector->setObjectName("hostSelector");
+    hostSelector->setMinimumHeight(34);
     connect(hostSelector, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &MainWindow::onHostSelected);
     lay->addWidget(hostSelector);
 
+    themeToggleBtn = new QPushButton(header);
+    themeToggleBtn->setObjectName("themeToggleBtn");
+    themeToggleBtn->setCursor(Qt::PointingHandCursor);
+    themeToggleBtn->setMinimumHeight(34);
+    connect(themeToggleBtn, &QPushButton::clicked, this, &MainWindow::toggleTheme);
+    lay->addWidget(themeToggleBtn);
+
     refreshBtn = new QPushButton(QStringLiteral("刷新"), header);
     refreshBtn->setObjectName("refreshBtn");
+    refreshBtn->setMinimumHeight(36);
     refreshBtn->setCursor(Qt::PointingHandCursor);
     lay->addWidget(refreshBtn);
 
@@ -571,8 +933,8 @@ QFrame *MainWindow::wrapInCard(QWidget *content, const QString &title,
     auto *card = new QFrame(this);
     card->setProperty("class", "card");
     auto *lay = new QVBoxLayout(card);
-    lay->setContentsMargins(20, 16, 20, 16);
-    lay->setSpacing(12);
+    lay->setContentsMargins(22, 19, 22, 20);
+    lay->setSpacing(14);
 
     if (!title.isEmpty()) {
         auto *headRow = new QHBoxLayout();
@@ -599,7 +961,14 @@ QTableWidget *MainWindow::makeTable(const QStringList &headers)
     auto *table = new QTableWidget(this);
     table->setColumnCount(headers.size());
     table->setHorizontalHeaderLabels(headers);
+    table->setMinimumWidth(0);
+    table->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     table->setAlternatingRowColors(true);
+    table->setMouseTracking(true);
+    table->setFocusPolicy(Qt::NoFocus);
+    table->setWordWrap(false);
+    table->setCornerButtonEnabled(false);
+    table->horizontalHeader()->setHighlightSections(false);
     table->verticalHeader()->setVisible(false);
     table->verticalHeader()->setDefaultSectionSize(40);
     table->setShowGrid(false);
@@ -625,10 +994,27 @@ void MainWindow::gotoPage(const QString &pageId)
     titleLabel->setText(titles.value(pageId));
 
     for (auto it = navButtons.begin(); it != navButtons.end(); ++it) {
-        it.value()->setProperty("active", it.key() == pageId);
+        const bool active = it.key() == pageId;
+        it.value()->setProperty("active", active);
+        it.value()->setIcon(makeNavIcon(it.key(), active ? zinc::accent : zinc::sub));
         it.value()->style()->unpolish(it.value());
         it.value()->style()->polish(it.value());
     }
+}
+
+void MainWindow::toggleTheme()
+{
+    m_darkTheme = !m_darkTheme;
+
+    QSettings settings(QStringLiteral("LiiVon"), QStringLiteral("PerfMonitor"));
+    settings.setValue(QStringLiteral("appearance/darkTheme"), m_darkTheme);
+
+    applyModernTheme();
+
+    if (!latestArray.isEmpty())
+        updateAllForCurrentHost();
+    else
+        refreshCharts();
 }
 
 // ============================================================
@@ -637,28 +1023,63 @@ void MainWindow::gotoPage(const QString &pageId)
 QWidget *MainWindow::buildOverviewPage()
 {
     auto *page = new QWidget(this);
+    page->setMinimumWidth(0);
+    page->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     auto *outer = new QVBoxLayout(page);
     outer->setContentsMargins(0, 0, 0, 0);
     outer->setSpacing(0);
 
     auto *scroll = new QScrollArea(page);
     scroll->setWidgetResizable(true);
+    scroll->setMinimumWidth(0);
     auto *content = new QWidget();
+    content->setObjectName("pageContent");
+    content->setMinimumWidth(0);
+    content->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     auto *lay = new QVBoxLayout(content);
-    lay->setContentsMargins(24, 24, 24, 24);
+    lay->setContentsMargins(28, 26, 28, 28);
     lay->setSpacing(20);
 
+    // ---- 页面标题：先交代当前视图，再进入指标细节 ----
+    auto *intro = new QHBoxLayout();
+    intro->setContentsMargins(0, 0, 0, 2);
+    intro->setSpacing(16);
+    auto *introText = new QVBoxLayout();
+    introText->setSpacing(5);
+    auto *heading = new QLabel(QStringLiteral("集群运行概览"), content);
+    heading->setObjectName("dashboardHeading");
+    auto *description = new QLabel(
+        QStringLiteral("实时洞察 CPU、内存、网络与磁盘的运行状态。"), content);
+    description->setObjectName("dashboardSubtitle");
+    introText->addWidget(heading);
+    introText->addWidget(description);
+    intro->addLayout(introText);
+    intro->addStretch();
+    auto *refreshHint = new QLabel(QStringLiteral("●  自动刷新 · 3 秒"), content);
+    refreshHint->setObjectName("dashboardLive");
+    intro->addWidget(refreshHint, 0, Qt::AlignVCenter);
+    lay->addLayout(intro);
+
     // ---- 4 个统计卡片 ----
+    // Two-column KPI grid stays readable on high-DPI laptops and compact screens.
     auto *cardGrid = new QGridLayout();
-    cardGrid->setSpacing(16);
+    cardGrid->setHorizontalSpacing(14);
+    cardGrid->setVerticalSpacing(14);
+    cardGrid->setColumnStretch(0, 1);
+    cardGrid->setColumnStretch(1, 1);
+
     scoreCard = new StatCard(QStringLiteral("健康评分"), content);
     cpuCard = new StatCard(QStringLiteral("CPU 使用率"), content);
     memCard = new StatCard(QStringLiteral("内存使用率"), content);
     loadCard = new StatCard(QStringLiteral("系统负载 (1min)"), content);
+    for (auto *card : {scoreCard, cpuCard, memCard, loadCard}) {
+        card->setMinimumWidth(0);
+        card->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    }
     cardGrid->addWidget(scoreCard, 0, 0);
     cardGrid->addWidget(cpuCard, 0, 1);
-    cardGrid->addWidget(memCard, 0, 2);
-    cardGrid->addWidget(loadCard, 0, 3);
+    cardGrid->addWidget(memCard, 1, 0);
+    cardGrid->addWidget(loadCard, 1, 1);
     lay->addLayout(cardGrid);
 
     // ---- CPU/内存趋势图卡片（带时间范围切换） ----
@@ -725,9 +1146,17 @@ QWidget *MainWindow::buildOverviewPage()
 
     // ---- 主机状态表（分页） ----
     hostsTable = makeTable({QStringLiteral("主机"), QStringLiteral("健康评分"),
-                            QStringLiteral("CPU"), QStringLiteral("内存"),
-                            QStringLiteral("状态")});
+                            QStringLiteral("CPU 使用率"), QStringLiteral("内存使用率"),
+                            QStringLiteral("连接状态")});
     hostsTable->setMinimumHeight(240);
+    hostsTable->setCursor(Qt::PointingHandCursor);
+    connect(hostsTable, &QTableWidget::cellDoubleClicked, this,
+            [this](int row, int) {
+                auto *hostItem = hostsTable->item(row, 0);
+                if (!hostItem) return;
+                const int hostIndex = hostSelector->findText(hostItem->text());
+                if (hostIndex >= 0) hostSelector->setCurrentIndex(hostIndex);
+            });
 
     // 分页栏
     auto *pageBar = new QHBoxLayout();
@@ -770,6 +1199,7 @@ QWidget *MainWindow::buildCpuPage()
                           QStringLiteral("I/O等待"), QStringLiteral("硬中断"),
                           QStringLiteral("软中断"), QStringLiteral("状态")});
     auto *page = new QWidget(this);
+    page->setMinimumWidth(0);
     auto *lay = new QVBoxLayout(page);
     lay->setContentsMargins(24, 24, 24, 24);
     lay->addWidget(wrapInCard(cpuTable, QStringLiteral("CPU 核心明细"),
@@ -782,6 +1212,7 @@ QWidget *MainWindow::buildMemPage()
     memTable = makeTable({QStringLiteral("指标"), QStringLiteral("值 (GB)"),
                           QStringLiteral("指标"), QStringLiteral("值 (GB)")});
     auto *page = new QWidget(this);
+    page->setMinimumWidth(0);
     auto *lay = new QVBoxLayout(page);
     lay->setContentsMargins(24, 24, 24, 24);
     lay->addWidget(wrapInCard(memTable, QStringLiteral("内存明细"),
@@ -797,6 +1228,7 @@ QWidget *MainWindow::buildNetPage()
                           QStringLiteral("发送错误"), QStringLiteral("丢弃"),
                           QStringLiteral("状态")});
     auto *page = new QWidget(this);
+    page->setMinimumWidth(0);
     auto *lay = new QVBoxLayout(page);
     lay->setContentsMargins(24, 24, 24, 24);
     lay->addWidget(wrapInCard(netTable, QStringLiteral("网卡明细"),
@@ -812,6 +1244,7 @@ QWidget *MainWindow::buildDiskPage()
                            QStringLiteral("写延迟(ms)"), QStringLiteral("利用率"),
                            QStringLiteral("状态")});
     auto *page = new QWidget(this);
+    page->setMinimumWidth(0);
     auto *lay = new QVBoxLayout(page);
     lay->setContentsMargins(24, 24, 24, 24);
     lay->addWidget(wrapInCard(diskTable, QStringLiteral("磁盘明细"),
@@ -828,6 +1261,7 @@ QWidget *MainWindow::buildSoftIrqPage()
                               QStringLiteral("SCHED"), QStringLiteral("HRTIMER"),
                               QStringLiteral("RCU")});
     auto *page = new QWidget(this);
+    page->setMinimumWidth(0);
     auto *lay = new QVBoxLayout(page);
     lay->setContentsMargins(24, 24, 24, 24);
     lay->addWidget(wrapInCard(softIrqTable, QStringLiteral("软中断明细"),
@@ -962,7 +1396,7 @@ void MainWindow::updateAllForCurrentHost()
 QColor MainWindow::levelColor(double v, double warn, double crit)
 {
     if (v >= crit) return zinc::red;
-    if (v >= warn) return QColor("#b45309");
+    if (v >= warn) return zinc::warning;
     return zinc::emerald;
 }
 
@@ -1108,11 +1542,16 @@ void MainWindow::setCellBadge(QTableWidget *table, int row, int col,
 {
     auto *badge = new QLabel(text);
     badge->setAlignment(Qt::AlignCenter);
-    QColor bg = color; bg.setAlpha(38);
+    // Blend the status color with the dark surface; QColor::name() omits alpha.
+    constexpr int mix = 42;
+    const QColor bg = QColor::fromRgb(
+        (color.red() * mix + zinc::panel.red() * (255 - mix)) / 255,
+        (color.green() * mix + zinc::panel.green() * (255 - mix)) / 255,
+        (color.blue() * mix + zinc::panel.blue() * (255 - mix)) / 255);
     badge->setStyleSheet(QString(
-        "QLabel{background:%1;color:%2;border-radius:10px;padding:3px 10px;"
-        "font-size:11px;font-weight:bold;border:none;}")
-        .arg(bg.name(), color.name()));
+        "QLabel{background:%1;color:%2;border-radius:8px;padding:3px 10px;"
+        "font-size:10px;font-weight:650;border:1px solid %3;}")
+        .arg(bg.name(), color.name(), zinc::border.name()));
     table->setCellWidget(row, col, badge);
 }
 
@@ -1133,7 +1572,7 @@ void MainWindow::updateCpuTable(const QJsonArray &cpuStats)
                                     : QString::number(obj[keys[c]].toDouble(), 'f', 2) + "%";
             cpuTable->setItem(row, c, new QTableWidgetItem(text));
         }
-        QColor color = pct >= 90 ? zinc::red : (pct >= 70 ? QColor("#b45309") : zinc::emerald);
+        QColor color = pct >= 90 ? zinc::red : (pct >= 70 ? zinc::warning : zinc::emerald);
         setCellBadge(cpuTable, row, 9,
                      pct >= 90 ? QStringLiteral("高负载") : (pct >= 70 ? QStringLiteral("偏忙") : QStringLiteral("正常")),
                      color);
@@ -1220,7 +1659,7 @@ void MainWindow::updateDiskTable(const QJsonArray &diskInfos)
         set(6, QString::number(obj["avg_write_latency_ms"].toDouble(), 'f', 2));
         set(7, QString::number(util, 'f', 2) + "%");
 
-        QColor color = util >= 90 ? zinc::red : (util >= 70 ? QColor("#b45309") : zinc::emerald);
+        QColor color = util >= 90 ? zinc::red : (util >= 70 ? zinc::warning : zinc::emerald);
         setCellBadge(diskTable, row, 8,
                      util >= 90 ? QStringLiteral("繁忙") : (util >= 70 ? QStringLiteral("偏忙") : QStringLiteral("空闲")),
                      color);
@@ -1248,5 +1687,5 @@ void MainWindow::setStatus(const QString &msg, bool ok)
 {
     statusLabel->setText(msg);
     statusDot->setStyleSheet(QString("background:%1;border-radius:4px;")
-                                 .arg(ok ? "#10b981" : "#ef4444"));
+                                 .arg(ok ? zinc::emerald.name() : zinc::red.name()));
 }
